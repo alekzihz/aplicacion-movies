@@ -1,0 +1,5 @@
+### Recuperar todas las películas
+GET http://localhost:3000/movies/all
+
+### Recuperar una película por id
+GET http://localhost:3000/movies/862
