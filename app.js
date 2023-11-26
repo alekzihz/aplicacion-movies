@@ -4,8 +4,10 @@ import cors from "cors";
 
 const app = Express();
 
+app.use(Express.static('public'))
 app.use(json());
 app.use(cors());
+
 app.disable('x-powered-by');
 
 
