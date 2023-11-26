@@ -1,9 +1,11 @@
 import Express, {json } from "express";
 import { MoviesRouter } from "./routes/movies.js";
+import cors from "cors";
 
 const app = Express();
 
 app.use(json());
+app.use(cors());
 app.disable('x-powered-by');
 
 
