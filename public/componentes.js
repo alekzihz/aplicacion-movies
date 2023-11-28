@@ -13,14 +13,17 @@ const RootComponent = {
 
     methods: {
         async getMovie() {
-            //movie = fetch ("http://localhost:3000/movies/all").then(response => response.json()).then(data => {
-            //movie = fetch("https://aplicacion-movies-dev-pfra.1.ie-1.fl0.io/movies/all").then(response => response.json()).then(data => {
-            const response = await fetch("/movies/all");
-            const data = await response.json().then(data => {
+            try {
+                const response = await fetch("/movies/all");
+                const data = await response.json();
                 this.movie = data;
                 this.loading = false;
-                console.log("completado")
-            });
+                console.log("completado");
+            } catch (error) {
+                console.error("Error al obtener películas:", error);
+                // Manejar el error de alguna manera, por ejemplo, establecer this.loading en false
+                this.loading = false;
+            }
         }
     },
 
@@ -54,7 +57,6 @@ const MovieItem = {
             const path_image = this.movie.poster_path;
             //const tmdbUrl = 'https://image.tmdb.org/t/p/w500' + path_image;
             //const filmtoroUrl = 'https://filmtoro.cz/img/film' + path_image;
-
             try {
                 const resposta = await fetch('movies/image' + path_image);
                
