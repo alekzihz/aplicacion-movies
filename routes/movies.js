@@ -6,3 +6,4 @@ export const MoviesRouter = Router();
 
 MoviesRouter.get('/all', MovieController.getAllMovies);
 MoviesRouter.get('/:id', MovieController.getMovieById);
+MoviesRouter.get('/image/:path', MovieController.getImageExterna);
