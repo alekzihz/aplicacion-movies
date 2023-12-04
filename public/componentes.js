@@ -29,8 +29,12 @@ const RootComponent = {
                 const data = await response.json();
                 //this.movies = data;
 
+                console.log(data.length)
                 this.movies = [...this.movies, ...data];
-                this.cacheMovies = [...this.cacheMovies, ...    data];
+                this.cacheMovies = [this.cacheMovies, ...data];
+
+                console.log("mi movie "+this.movies.length)
+               
                 this.loading = false;
                 this.cacheMovies = data;
                 this.page++;
@@ -117,8 +121,6 @@ const MovieItem = {
     methods:{
         async getImage(){
             const path_image = this.movie.poster_path;
-            console.log("antes del fetch")
-            console.log(path_image)
             //const tmdbUrl = 'https://image.tmdb.org/t/p/w500' + path_image;
             //const filmtoroUrl = 'https://filmtoro.cz/img/film' + path_image;
             try {
@@ -172,11 +174,14 @@ const FilterMovie = {
     methods:{
         searchMovies(){
 
+            console.log(this.peliculas.length)
             if(this.searchQuery == ""){
                 this.peliculasEncontradas = [];
                 this.$emit("busqueda", this.peliculasEncontradas);
                 return;
             }
+
+            console.log("mi leng en busqueda "+this.peliculas.length)
             this.peliculasEncontradas = this.peliculas.filter((movie) => {
                 return movie.title.toLowerCase().includes(this.searchQuery.toLowerCase());
             });
