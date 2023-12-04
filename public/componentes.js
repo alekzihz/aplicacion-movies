@@ -2,26 +2,40 @@
 const RootComponent = {
     data() {
         return {
-            movie: "",
+            movies: [],
             movieFiltradas:"",
             cacheMovies: [],
             message: "APP Movies!",
-            loading: true
+            loading: true,
+            startIndex: 0,
+            batchSize:100,
+            scrollThreshhold: 200,
+            page: 1,
+            stateScroll: false,
         };
     },
 
     mounted() {
         this.getMovie();
+        window.addEventListener("scroll", this.ControladorScroll);
     },
 
     methods: {
         async getMovie() {
             try {
-                const response = await fetch("/movies/all");
+                console.log("Obteniendo películas...")
+                console.log("page: "+this.page)
+                const response = await fetch(`/movies/all/${this.page}`);
                 const data = await response.json();
-                this.movie = data;
+                //this.movies = data;
+
+                this.movies = [...this.movies, ...data];
+                this.cacheMovies = [...this.cacheMovies, ...    data];
                 this.loading = false;
                 this.cacheMovies = data;
+                this.page++;
+                this.stateScroll = true;
+                console.log("terminado")
             } catch (error) {
                 console.error("Error al obtener películas:", error);
                 // Manejar el error de alguna manera, por ejemplo, establecer this.loading en false
@@ -29,29 +43,53 @@ const RootComponent = {
             }
         },
         controladorBusqueda(moviesFiltradas){
-            console.log("controladorBusqueda")
             console.log(moviesFiltradas)
             if(moviesFiltradas.length == 0){
-                console.log("esto es cero")
-                this.movie = this.cacheMovies;
+                this.movies = this.cacheMovies;
             }
             else{
-                this.movie = moviesFiltradas;
+                this.movies = moviesFiltradas;
             }
         },
+
+        ControladorScroll(){
+            const scrollY = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+
+            if (scrollY + windowHeight >= documentHeight - 200) {
+                console.log(this.movies.length)
+                if(this.stateScroll){
+                    this.stateScroll = !this.stateScroll;
+                    this.getMovie();
+                }
+            }
+
+
+        },
+
+        beforeDestroy() {
+            window.removeEventListener('scroll', this.handleScroll);
+          },
+        
+
     },
+
+  
 
     template:`
     
     <div>
         <!--h1>{{ message }}</h1-->
         <!-- Mostrar un indicador de carga mientras se obtienen las películas -->
-        <div v-if="loading">Cargando...</div>
+       
 
-        <FilterMovie :peliculas="movie" @busqueda="controladorBusqueda"></FilterMovie> 
+        <FilterMovie :peliculas="movies" @busqueda="controladorBusqueda"></FilterMovie> 
+        <br>
+        <div class="" v-if="loading">Cargando...</div>
         <!-- Mostrar la lista de películas cuando la carga ha terminado -->
         <div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        <MovieItem v-for="movie in movie" :key="movie.id" :movie="movie" />
+        <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie"/>
         </div>
     </div>
     `
@@ -63,14 +101,24 @@ const MovieItem = {
     data() {
         return {
            belongs_to_collection: Object,
-           poster_path : null
+           poster_path : null,
+          
 
         };
+    },
+
+    computed:{
+        mostrarCargar(){
+            //return this.startIndex < this.movie.length;
+        }
+
     },
 
     methods:{
         async getImage(){
             const path_image = this.movie.poster_path;
+            console.log("antes del fetch")
+            console.log(path_image)
             //const tmdbUrl = 'https://image.tmdb.org/t/p/w500' + path_image;
             //const filmtoroUrl = 'https://filmtoro.cz/img/film' + path_image;
             try {
@@ -79,6 +127,9 @@ const MovieItem = {
 
         // Crear una URL de datos directamente desde el Blob
                 this.poster_path = URL.createObjectURL(blob);
+                //this.movie.poster_path = this.poster_path;
+                //this.movie.poster_path = this.poster_path;
+                //this.$emit("updatePathImagen", this.movie);
 
             } catch (error) {
                 console.error(error);
@@ -88,6 +139,7 @@ const MovieItem = {
 
 
     mounted() {
+        //console.log(this.movie.title)
         this.getImage();      
     },
     template: `

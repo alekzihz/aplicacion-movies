@@ -23,9 +23,12 @@ async function connect() {
 }
 
 export class MovieModel{
-    static async getAllMovies(){
+    static async getAllMovies(page){
+        console.log("enviando page: " +page)
         const movies = await connect();
-        const lista= await movies.find({}).limit(100).toArray();
+        //const lista= await movies.find({}).toArray();
+        const lista = await movies.find({}).skip((page - 1) * 100).limit(100).toArray();
+
         const moviesParsed = lista.map(movie => {
           const fixedGenres = typeof movie.genres === 'string' ? movie.genres.replace(/'/g, '"') : null;
           const fixedProduction_Countries = typeof movie.production_countries === 'string' ? movie.production_countries.replace(/'/g, '"') : null;
