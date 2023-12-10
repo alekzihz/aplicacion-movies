@@ -3,8 +3,8 @@ const RootComponent = {
     data() {
         return {
             movies: [],
-            movieFiltradas:"",
             cacheMovies: [],
+            movieFiltradas:"",
             message: "APP Movies!",
             loading: true,
             startIndex: 0,
@@ -23,22 +23,23 @@ const RootComponent = {
     methods: {
         async getMovie() {
             try {
-                console.log("Obteniendo películas...")
+                //console.log("Obteniendo películas...")
                 console.log("page: "+this.page)
                 const response = await fetch(`/movies/all/${this.page}`);
                 const data = await response.json();
                 //this.movies = data;
 
-                console.log(data.length)
+     
                 this.movies = [...this.movies, ...data];
-                this.cacheMovies = [this.cacheMovies, ...data];
+                this.cacheMovies = [...this.cacheMovies, ...data];
 
-                console.log("mi movie "+this.movies.length)
+                //console.log("mi movie "+this.movies.length)
                
                 this.loading = false;
-                this.cacheMovies = data;
                 this.page++;
                 this.stateScroll = true;
+                console.log("mi movie "+this.movies.length)
+                console.log("mi movieCache "+this.cacheMovies.length)
                 console.log("terminado")
             } catch (error) {
                 console.error("Error al obtener películas:", error);
@@ -47,8 +48,10 @@ const RootComponent = {
             }
         },
         controladorBusqueda(moviesFiltradas){
-            console.log(moviesFiltradas)
+           
             if(moviesFiltradas.length == 0){
+                console.log(this.cacheMovies.length)
+                console.log("movies" + this.movies.length)
                 this.movies = this.cacheMovies;
             }
             else{
@@ -62,7 +65,6 @@ const RootComponent = {
             const documentHeight = document.documentElement.scrollHeight;
 
             if (scrollY + windowHeight >= documentHeight - 200) {
-                console.log(this.movies.length)
                 if(this.stateScroll){
                     this.stateScroll = !this.stateScroll;
                     this.getMovie();
@@ -181,12 +183,11 @@ const FilterMovie = {
                 return;
             }
 
-            console.log("mi leng en busqueda "+this.peliculas.length)
             this.peliculasEncontradas = this.peliculas.filter((movie) => {
                 return movie.title.toLowerCase().includes(this.searchQuery.toLowerCase());
             });
         
-            //console.log(this.peliculasEncontradas)
+            console.log("emitiendo")
             this.$emit("busqueda", this.peliculasEncontradas);
         }
 
