@@ -27,7 +27,7 @@ export class MovieModel{
         console.log("enviando page: " +page)
         const movies = await connect();
         //const lista= await movies.find({}).toArray();
-        const lista = await movies.find({}).skip((page - 1) * 100).limit(5).toArray();
+        const lista = await movies.find({}).skip((page - 1) * 100).limit(100).toArray();
 
         const moviesParsed = lista.map(movie => {
           const fixedGenres = typeof movie.genres === 'string' ? movie.genres.replace(/'/g, '"') : null;
