@@ -23,11 +23,11 @@ async function connect() {
 }
 
 export class MovieModel{
-    static async getAllMovies(page){
+    static async getMovies(page){
         console.log("enviando page: " +page)
         const movies = await connect();
         //const lista= await movies.find({}).toArray();
-        const lista = await movies.find({}).skip((page - 1) * 100).limit(100).toArray();
+        const lista = await movies.find({}).skip((page - 1) * 100).limit(5).toArray();
 
         const moviesParsed = lista.map(movie => {
           const fixedGenres = typeof movie.genres === 'string' ? movie.genres.replace(/'/g, '"') : null;
@@ -35,6 +35,8 @@ export class MovieModel{
           const fixedCollection = movie.belongs_to_collection==='string' ? movie.belongs_to_collection.replace(/'/g, '"') : null;
           //const fixedProduction = movie.production_companies ? movie.production_companies.replace(/'/g, '"') : null;
           const fixedLanguages = movie.spoken_languages==='string' ? movie.spoken_languages.replace(/'/g, '"') : null;
+      
+          //console.log(FormData(movie.release_date));
           return {
               ...movie,
               //genres: fixedGenres? JSON.parse(fixedGenres): null,
@@ -46,6 +48,7 @@ export class MovieModel{
       });
   
       return moviesParsed;
+      
         
         //console.log(lista)
         //const formattedMovies= lista.map((movie) => JSON.stringify(movie));

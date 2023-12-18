@@ -38,8 +38,6 @@ const RootComponent = {
                 this.loading = false;
                 this.page++;
                 this.stateScroll = true;
-                console.log("mi movie "+this.movies.length)
-                console.log("mi movieCache "+this.cacheMovies.length)
                 console.log("terminado")
             } catch (error) {
                 console.error("Error al obtener películas:", error);
@@ -50,8 +48,6 @@ const RootComponent = {
         controladorBusqueda(moviesFiltradas){
            
             if(moviesFiltradas.length == 0){
-                console.log(this.cacheMovies.length)
-                console.log("movies" + this.movies.length)
                 this.movies = this.cacheMovies;
             }
             else{
@@ -95,7 +91,7 @@ const RootComponent = {
         <div class="" v-if="loading">Cargando...</div>
         <!-- Mostrar la lista de películas cuando la carga ha terminado -->
         <div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie"/>
+        <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" class="flex items-center justify-center" />
         </div>
     </div>
     `
@@ -108,6 +104,8 @@ const MovieItem = {
         return {
            belongs_to_collection: Object,
            poster_path : null,
+           year: null,
+           title:""
           
 
         };
@@ -131,34 +129,81 @@ const MovieItem = {
 
         // Crear una URL de datos directamente desde el Blob
                 this.poster_path = URL.createObjectURL(blob);
-                //this.movie.poster_path = this.poster_path;
-                //this.movie.poster_path = this.poster_path;
-                //this.$emit("updatePathImagen", this.movie);
-
             } catch (error) {
                 console.error(error);
             }
-        }
+        },
+        
+
+
     },
 
 
     mounted() {
         //console.log(this.movie.title)
-        this.getImage();      
+        this.getImage();   
+       
     },
+
+    created(){
+        this.year = this.movie.release_date.substring(0,4);
+        this.title = this.movie.original_title;      
+    },
+
     template: `
-    <section class="max-w-md mx-auto bg-white rounded-xl overflow-hidden shadow-md md:w-48 md:h-64 lg:w-64 lg:h-80">
+
+   
+    <section class="max-w-md mx-auto bg-white rounded-xl shadow-md md:w-48 md:h-64 lg:w-64 lg:h-80 ">
         <img class="w-full h-48 object-cover" :src="poster_path" alt="movie.title">
         <div class="p-6">
             <h2 class="font-bold text-xl mb-2">{{ movie.title }}</h2>
             <p class="text-gray-700">{{ movie.description }}</p>
         </div>
+
+       <WidgetJustWatch :title="title" :year="year"></WidgetJustWatch>
     </section>
 
 
 
 
     `
+}
+
+const WidgetJustWatch = {
+    props:["title","year"],
+
+    mounted(){
+
+        console.log("aqui en widd   ")
+        
+        if (!window.JustWatch) {
+            const script = document.createElement("script");
+            script.src = "https://widget.justwatch.com/justwatch_widget.js";
+            script.async = true;
+            script.onload = this.initializeJustWatchWidget;
+      
+            document.head.appendChild(script);
+          }
+        
+        
+        
+        if (window.JWInit) {
+            window.JWInit();
+          }
+
+    },
+
+    template:`
+    <div data-jw-widget
+         data-api-key="ABCdef12"
+         data-object-type="movie"
+         :data-title="title"
+         :data-year="year"
+    ></div>
+    
+    `
+
+
 }
 
 const FilterMovie = {
@@ -174,9 +219,7 @@ const FilterMovie = {
 
     },
     methods:{
-        searchMovies(){
-
-            console.log(this.peliculas.length)
+        searchMovies(){       
             if(this.searchQuery == ""){
                 this.peliculasEncontradas = [];
                 this.$emit("busqueda", this.peliculasEncontradas);
@@ -207,4 +250,5 @@ const FilterMovie = {
 const app = Vue.createApp(RootComponent);
 app.component("MovieItem",MovieItem);
 app.component("FilterMovie", FilterMovie);
+app.component("WidgetJustWatch", WidgetJustWatch);
 const vm = app.mount("#app");

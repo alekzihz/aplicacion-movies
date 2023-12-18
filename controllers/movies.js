@@ -1,10 +1,10 @@
 import { MovieModel } from "../model/mongoDB/movie.js";
 
 export default class MovieController {
-    static async getAllMovies(req, res) {
+    static async getMovies(req, res) {
         try {
             const page = req.params.page;
-            const movies = await MovieModel.getAllMovies(page);
+            const movies = await MovieModel.getMovies(page);
             res.status(200).json(movies);
         } catch (error) {
             res.status(500).json({ message: error.message });
