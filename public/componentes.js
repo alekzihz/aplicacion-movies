@@ -90,8 +90,10 @@ const RootComponent = {
         <br>
         <div class="" v-if="loading">Cargando...</div>
         <!-- Mostrar la lista de películas cuando la carga ha terminado -->
+        <!--div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4"-->
         <div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" class="flex items-center justify-center" />
+        <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" ></MovieItem>
+        />
         </div>
     </div>
     `
@@ -153,14 +155,13 @@ const MovieItem = {
     template: `
 
    
-    <section class="max-w-md mx-auto bg-white rounded-xl shadow-md md:w-48 md:h-64 lg:w-64 lg:h-80 ">
-        <img class="w-full h-48 object-cover" :src="poster_path" alt="movie.title">
-        <div class="p-6">
-            <h2 class="font-bold text-xl mb-2">{{ movie.title }}</h2>
-            <p class="text-gray-700">{{ movie.description }}</p>
-        </div>
+    <section class="">
+        <img class="w-full h-full object-cover" :src="poster_path" alt="movie.title">
+        
 
-       <WidgetJustWatch :title="title" :year="year"></WidgetJustWatch>
+    <div class="bg-white">
+        <WidgetJustWatch :title="title" :year="year"></WidgetJustWatch>
+    </div>
     </section>
 
 
