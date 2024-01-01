@@ -12,6 +12,7 @@ const RootComponent = {
             scrollThreshhold: 200,
             page: 1,
             stateScroll: false,
+            enableDescription: false,
         };
     },
 
@@ -31,14 +32,10 @@ const RootComponent = {
 
      
                 this.movies = [...this.movies, ...data];
-                this.cacheMovies = [...this.cacheMovies, ...data];
-
-                //console.log("mi movie "+this.movies.length)
-               
+                this.cacheMovies = [...this.cacheMovies, ...data];               
                 this.loading = false;
                 this.page++;
                 this.stateScroll = true;
-                console.log("terminado")
             } catch (error) {
                 console.error("Error al obtener películas:", error);
                 // Manejar el error de alguna manera, por ejemplo, establecer this.loading en false
@@ -73,6 +70,13 @@ const RootComponent = {
         beforeDestroy() {
             window.removeEventListener('scroll', this.handleScroll);
           },
+
+        showDescription() {
+            this.enableDescription = !this.enableDescription;
+          },
+          
+
+          
         
 
     },
@@ -87,29 +91,30 @@ const RootComponent = {
        
 
         <FilterMovie :peliculas="movies" @busqueda="controladorBusqueda"></FilterMovie> 
-        <br>
+       
         <div class="" v-if="loading">Cargando...</div>
         <!-- Mostrar la lista de películas cuando la carga ha terminado -->
         <!--div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4"-->
-        <div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" ></MovieItem>
-        />
+        <div v-if="!loading" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); grid-gap: 1rem;">
+            <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription"></MovieItem>
         </div>
     </div>
     `
 };
 
 const MovieItem = {
-    props: ["movie"],
+    props: ["movie","description"],
+    emits:["show"],
 
     data() {
         return {
            belongs_to_collection: Object,
            poster_path : null,
            year: null,
-           title:""
+           title:"",
+           countMovies:0, //no se usa
+           details: false,
           
-
         };
     },
 
@@ -117,7 +122,6 @@ const MovieItem = {
         mostrarCargar(){
             //return this.startIndex < this.movie.length;
         }
-
     },
 
     methods:{
@@ -131,52 +135,109 @@ const MovieItem = {
 
         // Crear una URL de datos directamente desde el Blob
                 this.poster_path = URL.createObjectURL(blob);
+                this.movie.poster_path = this.poster_path;
+                this.countMovies++;
+                console.log("fin de imagen "+this.countMovies)
+                if (this.countMovies == 100){
+                    console.log("fin de imagen "+this.countMovies)
+                }
             } catch (error) {
                 console.error(error);
             }
         },
-        
 
+        showDescription(){
+           if(this.description==false && this.details==false){
+               
+           }
+          
+           this.details=true;
+           this.$emit("show");
+        }
+        
 
     },
 
+    watch: {
+        description(newVal){
+            if(newVal==false){
+                this.details=false;
+            }
+        }
+    },
+    
 
     mounted() {
-        //console.log(this.movie.title)
-        this.getImage();   
-       
+        this.getImage();          
     },
 
     created(){
         this.year = this.movie.release_date.substring(0,4);
         this.title = this.movie.original_title;      
     },
-
     template: `
-
-   
-    <section class="">
+    <section @click="showDescription" >
         <img class="w-full h-full object-cover" :src="poster_path" alt="movie.title">
-        
-
-    <div class="bg-white">
+    <!--div class="bg-white">
         <WidgetJustWatch :title="title" :year="year"></WidgetJustWatch>
-    </div>
+    </div-->
     </section>
 
-
-
-
+    
+        <DescriptionMovie v-if="description && details" @close="showDescription" :movie="movie" style=" 
+        width: 80%;
+        height: 100%;
+        background-color: white;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        overflow-y: scroll;
+        justify-content: center;
+        align-items: center;">
+        
+        </DescriptionMovie>
+   
     `
+
+    
 }
+
+const DescriptionMovie = {
+    props : ["movie"],
+    data() {
+      return {
+        message: "DescriptionMovie",
+
+      };
+    },
+    template: `
+      <div>
+        <div>
+          <div>
+
+          <img class="w-3/6 h-3/6 object-cover" :src="movie.poster_path" alt="movie.title">
+            <h2>{{ movie.overview}}</h2>
+            <button @click.prevent="closeDescription" class="position:relative">X</button>
+          </div>
+          <article>
+            <div>
+              This is a simple modal popup in Vue.js
+            </div>
+          </article>
+        </div>
+      </div>
+    `,
+    methods: {
+      closeDescription() {
+        this.$emit("close");
+      },
+    },
+  };
 
 const WidgetJustWatch = {
     props:["title","year"],
-
     mounted(){
-
-        console.log("aqui en widd   ")
-        
         if (!window.JustWatch) {
             const script = document.createElement("script");
             script.src = "https://widget.justwatch.com/justwatch_widget.js";
@@ -208,7 +269,6 @@ const WidgetJustWatch = {
 }
 
 const FilterMovie = {
-
     emits:["busqueda"],
     props:["peliculas"],
 
@@ -230,19 +290,13 @@ const FilterMovie = {
             this.peliculasEncontradas = this.peliculas.filter((movie) => {
                 return movie.title.toLowerCase().includes(this.searchQuery.toLowerCase());
             });
-        
-            console.log("emitiendo")
             this.$emit("busqueda", this.peliculasEncontradas);
         }
-
     },
-
     template:`
     <input v-model="searchQuery" @input="searchMovies" placeholder="Buscar películas" class="p-2 mb-4 border-gray-900 w-full">
 
-    `
-    
-    
+    `  
 }
 
 
@@ -250,6 +304,7 @@ const FilterMovie = {
 
 const app = Vue.createApp(RootComponent);
 app.component("MovieItem",MovieItem);
+app.component("DescriptionMovie",DescriptionMovie);
 app.component("FilterMovie", FilterMovie);
 app.component("WidgetJustWatch", WidgetJustWatch);
 const vm = app.mount("#app");
