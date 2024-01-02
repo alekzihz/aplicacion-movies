@@ -74,11 +74,6 @@ const RootComponent = {
         showDescription() {
             this.enableDescription = !this.enableDescription;
           },
-          
-
-          
-        
-
     },
 
   
@@ -146,11 +141,7 @@ const MovieItem = {
             }
         },
 
-        showDescription(){
-           if(this.description==false && this.details==false){
-               
-           }
-          
+        showDescription(){   
            this.details=true;
            this.$emit("show");
         }
@@ -181,9 +172,7 @@ const MovieItem = {
     <!--div class="bg-white">
         <WidgetJustWatch :title="title" :year="year"></WidgetJustWatch>
     </div-->
-    </section>
-
-    
+    </section>    
         <DescriptionMovie v-if="description && details" @close="showDescription" :movie="movie" style=" 
         width: 80%;
         height: 100%;
@@ -191,7 +180,6 @@ const MovieItem = {
         position: absolute;
         top: 0;
         left: 0;
-        display: flex;
         overflow-y: scroll;
         justify-content: center;
         align-items: center;">
@@ -199,8 +187,6 @@ const MovieItem = {
         </DescriptionMovie>
    
     `
-
-    
 }
 
 const DescriptionMovie = {
@@ -211,27 +197,36 @@ const DescriptionMovie = {
 
       };
     },
-    template: `
-      <div>
-        <div>
-          <div>
 
-          <img class="w-3/6 h-3/6 object-cover" :src="movie.poster_path" alt="movie.title">
-            <h2>{{ movie.overview}}</h2>
-            <button @click.prevent="closeDescription" class="position:relative">X</button>
-          </div>
-          <article>
-            <div>
-              This is a simple modal popup in Vue.js
-            </div>
-          </article>
-        </div>
+
+    template: `
+    <div>
+    <div style= "
+    margin-left: 95%;
+  
+    ">
+        <button @click="closeDescription" class="text-2xl font-bold text-white">X</button>
+    </div>
+
+    <div class="relative">
+      <img class="w-3/6 h-3/6 object-cover" :src="movie.poster_path" alt="movie.title">
+      <h2>{{ movie.overview }}</h2>
+    </div>
+
+    <article>
+      <div>
+        This is a simple modal popup in Vue.js
       </div>
+    </article>
+    </div>
+
     `,
     methods: {
       closeDescription() {
         this.$emit("close");
       },
+
+      
     },
   };
 
