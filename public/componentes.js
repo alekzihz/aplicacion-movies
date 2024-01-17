@@ -21,6 +21,12 @@ const RootComponent = {
         window.addEventListener("scroll", this.ControladorScroll);
     },
 
+    watch:{
+        movies(){
+            console.log((this.movies.length))
+        }
+    },
+
     methods: {
         async getMovie() {
             try {
@@ -76,6 +82,10 @@ const RootComponent = {
           },
     },
 
+    created() {
+        //this.page=1;
+    },
+
   
 
     template:`
@@ -83,10 +93,10 @@ const RootComponent = {
     <div>
         <!--h1>{{ message }}</h1-->
         <!-- Mostrar un indicador de carga mientras se obtienen las películas -->
-       
+        <button class="bg-red-500">Botón Primero</button>
 
-        <FilterMovie :peliculas="movies" @busqueda="controladorBusqueda"></FilterMovie> 
        
+        <FilterMovie :peliculas="movies" @busqueda="controladorBusqueda"></FilterMovie> 
         <div class="" v-if="loading">Cargando...</div>
         <!-- Mostrar la lista de películas cuando la carga ha terminado -->
         <!--div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4"-->
@@ -121,23 +131,29 @@ const MovieItem = {
 
     methods:{
         async getImage(){
-            const path_image = this.movie.poster_path;
-            //const tmdbUrl = 'https://image.tmdb.org/t/p/w500' + path_image;
-            //const filmtoroUrl = 'https://filmtoro.cz/img/film' + path_image;
-            try {
-                const resposta = await fetch('movies/image' + path_image);               
-                const blob = await resposta.blob();
 
-        // Crear una URL de datos directamente desde el Blob
-                this.poster_path = URL.createObjectURL(blob);
-                this.movie.poster_path = this.poster_path;
-                this.countMovies++;
-                console.log("fin de imagen "+this.countMovies)
-                if (this.countMovies == 100){
-                    console.log("fin de imagen "+this.countMovies)
+            if (this.movie.resource_image == "") {
+
+                console.log ("buscando: "+this.movie.title)
+                const path_image = this.movie.poster_path;
+                const tmdbUrl = 'https://image.tmdb.org/t/p/w500' + path_image;
+                const filmtoroUrl = 'https://filmtoro.cz/img/film' + path_image;
+                try {
+                    const resposta = await fetch('movies/image' + path_image);               
+                    const blob = await resposta.blob();
+
+            // Crear una URL de datos directamente desde el Blob
+                    this.poster_path = URL.createObjectURL(blob);
+
+                    //this.movie.poster_path = this.poster_path;
+                    if (this.poster_path != tmdbUrl || this.poster_path != filmtoroUrl) this.movie.resource_image = "images/notfound.webp"
+                    else{
+                        this.movie.resource_image = this.poster_path;
+                    }
+                    
+                } catch (error) {
+                    console.error(error);
                 }
-            } catch (error) {
-                console.error(error);
             }
         },
 
@@ -168,7 +184,7 @@ const MovieItem = {
     },
     template: `
     <section @click="showDescription" >
-        <img class="w-full h-full object-cover" :src="poster_path" alt="movie.title">
+        <img class="w-full h-full object-cover" :src="movie.resource_image" alt="movie.title">
     <!--div class="bg-white">
         <WidgetJustWatch :title="title" :year="year"></WidgetJustWatch>
     </div-->
@@ -209,7 +225,8 @@ const DescriptionMovie = {
     </div>
 
     <div class="relative">
-      <img class="w-3/6 h-3/6 object-cover" :src="movie.poster_path" alt="movie.title">
+      <img class="w-3/6 h-3/6 object-cover" :src="movie.resource_image" alt="movie.title">
+      <h1>{{ movie.title }}</h1>
       <h2>{{ movie.overview }}</h2>
     </div>
 
@@ -290,6 +307,13 @@ const FilterMovie = {
     },
     template:`
     <input v-model="searchQuery" @input="searchMovies" placeholder="Buscar películas" class="p-2 mb-4 border-gray-900 w-full">
+    <select class="p-2 mb-4 border-gray-900 w-full">
+        <option value="1">Todas</option>
+        <option value="2">Acción</option>
+        <option value="3">Comedia</option>
+        <option value="4">Drama</option>
+        <option value="5">Terror</option>
+    </select>
 
     `  
 }

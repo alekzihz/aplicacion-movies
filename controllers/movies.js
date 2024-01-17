@@ -11,11 +11,38 @@ export default class MovieController {
         }
     }
 
+    static async addImage(req, res) {
+        try {
+            //console.log("hola")
+            //return
+            const image = req.body;
+            console.log("en controller addimage")
+            console.log(image)
+            const movie = await MovieModel.addImage(image);
+            res.status(200).json(movie);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+
     static async getMovieById(req, res) {
         try {
+
             let id = req.params.id;
             const movie = await MovieModel.getMovieById(id);
             res.status(200).json(movie);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+
+   
+
+    static async getAllMovies(req, res) {
+        try {
+           
+            const movies = await MovieModel.getAllMovies();
+            res.status(200).json(movies);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }

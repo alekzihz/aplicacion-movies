@@ -9,8 +9,42 @@
 
     <title>App Movies</title>
 </head>
+
+<header>
+   
+</header>
 <body class="bg-black">
+
+    <div id="fixedButton">
+        <a href="login">
+            <button>Login</button>
+        </a>
+    </div>
+    
     <div id="app" class=""></div>
     <script type="text/javascript"  src="componentes.js" charset="utf-8"></script>
 </body>
 </html>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: black;
+    }
+
+    #fixedButton {
+        position: fixed;
+        top: 10px; /* Ajusta la distancia desde la parte superior según tus preferencias */
+        left: 10px; /* Ajusta la distancia desde la izquierda según tus preferencias */
+        background-color: blue;
+        color: white;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+    #app {
+        height: 1000px; /* Solo para simular contenido que hace que el usuario haga scroll */
+    }
+</style>

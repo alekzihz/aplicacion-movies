@@ -1,0 +1,140 @@
+<aside id="sidenav-open">
+    <nav>
+      <h4>My</h4>
+      <a href="#">Dashboard</a>
+      <a href="#">Profile</a>
+      <a href="#">Preferences</a>
+      <a href="#">Archive</a>
+  
+      <h4>Settings</h4>
+      <a href="#">Accessibility</a>
+      <a href="#">Theme</a>
+      <a href="#">Admin</a>
+    </nav>
+    
+    <!-- TODO: Devsite - Removed inline handlers -->
+    <!-- <a href="#" id="sidenav-close" title="Close Menu" aria-label="Close Menu" onchange="history.go(-1)"></a> -->
+  </aside>
+  
+  <main>
+    <header>
+      <a href="#sidenav-open" id="sidenav-button" class="hamburger" title="Open Menu" aria-label="Open Menu">
+        <svg viewBox="0 0 50 40" role="presentation" focusable="false" aria-label="trigram for heaven symbol">
+          <line x1="0" x2="100%" y1="10%" y2="10%" />
+          <line x1="0" x2="100%" y1="50%" y2="50%" />
+          <line x1="0" x2="100%" y1="90%" y2="90%" />
+        </svg>
+      </a>
+      <h1>Site Title</h1>
+    </header>
+    <body>
+        <article>
+          <h2>Totam Header</h2>
+          <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Cum consectetur, necessitatibus velit officia ut impedit veritatis temporibus soluta? Totam odit cupiditate facilis nisi sunt hic necessitatibus voluptatem nihil doloribus! Enim.</p>
+          <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Fugit rerum, amet odio explicabo voluptas eos cum libero, ex esse quasi optio incidunt soluta eligendi labore error corrupti! Dolore, cupiditate porro.</p>
+      
+          <h3>Subhead Totam Odit</h3>
+          <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Fugit rerum, amet odio explicabo voluptas eos cum libero, ex esse quasi optio incidunt soluta eligendi labore error corrupti! Dolore, cupiditate porro.</p>
+          <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Fugit rerum, amet odio explicabo voluptas eos cum libero, ex esse quasi optio incidunt soluta eligendi labore error corrupti! Dolore, cupiditate porro.</p>
+          
+          <h3>Subhead</h3>
+          <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Fugit rerum, amet odio explicabo voluptas eos cum libero, ex esse quasi optio incidunt soluta eligendi labore error corrupti! Dolore, cupiditate porro.</p>
+          <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Fugit rerum, amet odio explicabo voluptas eos cum libero, ex esse quasi optio incidunt soluta eligendi labore error corrupti! Dolore, cupiditate porro.</p>
+        </article>
+      </main>
+        
+    </body>
+  
+
+<style>
+    
+    body {
+  display: grid;
+  grid: [stack] 1fr / min-content [stack] 1fr;
+
+  @media (max-width: 540px) {
+    & > :matches(aside, main) {
+      grid-area: stack;
+    }
+  }
+}
+
+#sidenav-open {
+  --easeOutExpo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration: .6s;
+
+  display: grid;
+  grid-template-columns: [nav] 2fr [escape] 1fr;
+
+  @media (max-width: 540px) {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow: hidden auto;
+    overscroll-behavior: contain;
+
+    visibility: hidden; /* not keyboard accessible when closed */
+    transform: translateX(-110vw);
+    will-change: transform;
+    transition: 
+      transform var(--duration) var(--easeOutExpo),
+      visibility 0s linear var(--duration);
+    
+    &:target {
+      visibility: visible;
+      transform: translateX(0);
+      transition: transform var(--duration) var(--easeOutExpo);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    --duration: 1ms;
+  }
+}
+
+#sidenav-button,
+#sidenav-close {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  touch-action: manipulation;
+
+  @media (min-width: 540px) {
+    display: none;
+  }
+}
+        
+</style>
+
+<script>
+    
+    const sidenav = document.querySelector('#sidenav-open')
+const closenav = document.querySelector('#sidenav-close')
+const opennav = document.querySelector('#sidenav-button')
+
+// set focus to our open/close buttons after animation
+sidenav.addEventListener('transitionend', e => {
+  if (e.propertyName !== 'transform')
+    return
+
+  const isOpen = document.location.hash === '#sidenav-open'
+
+  isOpen
+    ? closenav.focus()
+    : opennav.focus()
+
+  if (!isOpen) {
+    history.replaceState(history.state, '')
+  }
+})
+
+// close our menu when esc is pressed
+sidenav.addEventListener('keyup', e => {
+  if (e.code === 'Escape')
+    window.history.length
+      ? window.history.back()
+      : document.location.hash = ''
+})
+        
+
+</script>

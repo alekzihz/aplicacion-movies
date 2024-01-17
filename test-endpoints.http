@@ -4,3 +4,29 @@ GET http://localhost:3000/movies/all
 ### Recuperar una película por id
 GET http://localhost:3000/movies/862
 
+###get user
+GET  http://localhost:3000/users/getUser/ejemplo@dominio.com
+
+###agregar usuario
+POST http://localhost:3000/users/addUser/ejemplo_usuario/ejemplo@dominio.com/contraseña_secreta
+
+###by post
+POST http://localhost:3000/users/addUser 
+Content-Type: application/json
+    
+    {
+        "name": "ejemplo_usuario",
+        "email": "asds"",
+        "contraseña": "contraseña_secreta"
+    }
+###get all users
+GET http://localhost:3000/users/allUsers
+
+###get everyhing
+POST http://localhost:3000/movies/addImage
+Content-Type: application/json
+
+{
+    "id": 842,
+    "resource_image": "https://image.tmdb.org/t/p/w500/8UlWHLMpgZm9bx6QYh0NFoq67TZ.jpg"
+}
