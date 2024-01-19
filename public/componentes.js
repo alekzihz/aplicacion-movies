@@ -13,7 +13,7 @@ const RootComponent = {
             page: 1,
             stateScroll: false,
             enableDescription: false,
-            searchON: true,
+            searchON: false,
         };
     },
 
@@ -35,9 +35,7 @@ const RootComponent = {
                 console.log("page: "+this.page)
                 const response = await fetch(`/movies/all/${this.page}`);
                 const data = await response.json();
-                //this.movies = data;
-
-     
+                //this.movies = data;     
                 this.movies = [...this.movies, ...data];
                 this.cacheMovies = [...this.cacheMovies, ...data];               
                 this.loading = false;
@@ -100,10 +98,7 @@ const RootComponent = {
     <div>
         <!--h1>{{ message }}</h1-->
         <!-- Mostrar un indicador de carga mientras se obtienen las películas -->
-        <div v-if="searchON && !movieFiltradas">
-            <h1 class ="text-blue-700 text-center-mb4">No resultados</h1>
-        </div>
-
+       
        
         <FilterMovie :peliculas="cacheMovies" @busqueda="controladorBusqueda"></FilterMovie> 
         <div class="" v-if="loading">Cargando...</div>
@@ -403,7 +398,16 @@ const FilterMovie = {
         }
     },
     template:`
-    <input v-model="searchQuery" @input="searchMovies" placeholder="Buscar películas" class="p-2 mb-4 border-gray-900 w-full">
+    <div style="display: flex; align-items: center;">
+    <input v-model="searchQuery" @input="searchMovies" placeholder="Buscar películas" class="p-2 mb-4 border-gray-900">
+    <select id="countries" class="p-2 mb-4 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        <option selected value="1">by title</option>
+        <option value="2">Canada</option>
+        <option value="3">France</option>
+        <option value="DE">Germany</option>
+    </select>
+</div>
+
     <select v-model="categoriaSeleccionada" class="p-2 mb-4 border-gray-900 w-full" @change="changeCategorias">
         <option @select="" v-for="categoria in categorias" :key="categoria.id" :value="categoria.id">{{categoria.name}}</option>
     </select>
