@@ -4,10 +4,14 @@ import bcrypt from 'bcrypt';
 export default class UserController {
     static async addUser(req, res) {
         try {
-            const email = req.params.email;
-            const user = req.params.user;
-            const password = req.params.password;
-            //const {email,user,password} = req.body;
+            //const email = req.params.email;
+            //const user = req.params.user;
+            //const password = req.params.password;
+            console.log("en contraolador para add user")
+            const {email,user,password} = req.body;
+            
+
+
 
          
 

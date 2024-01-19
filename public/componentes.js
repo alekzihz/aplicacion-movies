@@ -53,8 +53,8 @@ const RootComponent = {
                 const data = await jsonData.json();
         
                 // Obtener peliculas
-                const startIndex = (this.page - 1) * 10;
-                const endIndex = startIndex + 10;
+                const startIndex = (this.page - 1) * 700;
+                const endIndex = startIndex + 700;
                 const moviesChunk = data.slice(startIndex, endIndex);
         
                 
@@ -386,18 +386,12 @@ const FilterMovie = {
         changeCategorias(){         
             this.peliculasEncontradas = [];
             this.$emit("busqueda", this.peliculas,false);
-
-            console.log(this.peliculasChild.length)
-
-            console.log("antes de filtrar child")
             if (this.categoriaSeleccionada != 1) {
                 this.peliculasEncontradas = this.peliculas.filter((movie) => {
-                    console.log(this.categorias[this.categoriaSeleccionada-1].name)
                     movie.genres = typeof movie.genres === 'string' ? JSON.parse(movie.genres.replace(/'/g, '"')) : movie.genres;
                     if(movie.genres){
                         for (const categoria of movie.genres) {
                             if(categoria.name == this.categorias[this.categoriaSeleccionada-1].name){
-                                console.log("he encontrado"+movie.title)
                                 return movie
                             }
                         }
@@ -411,21 +405,17 @@ const FilterMovie = {
         categorizadasMovies(idCategoria){
             
             if (idCategoria!=1){
-
-                console.log("categorizando")
                 this.peliculasEncontradas = this.peliculas.filter((movie) => {
                     movie.genres = typeof movie.genres === 'string' ? JSON.parse(movie.genres.replace(/'/g, '"')) : movie.genres;
                     if(movie.genres){
                         for (const categoria of movie.genres) {
                             if(categoria.name == this.categorias[idCategoria-1].name){
-                                console.log("he encontrado"+movie.title)
                                 return movie
                             }
                         }
 
                     }
                 });
-                console.log("peliculas encontradas: "+this.peliculasEncontradas.length)
                 return this.$emit("busqueda", this.peliculasEncontradas,true);
             }
         }
@@ -435,9 +425,6 @@ const FilterMovie = {
     <input v-model="searchQuery" @input="searchMovies" placeholder="Buscar películas" class="p-2 mb-4 border-gray-900">
     <select id="countries" class="p-2 mb-4 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
         <option selected value="1">by title</option>
-        <option value="2">Canada</option>
-        <option value="3">France</option>
-        <option value="DE">Germany</option>
     </select>
 </div>
 

@@ -15,9 +15,9 @@ POST http://localhost:3000/users/addUser
 Content-Type: application/json
     
     {
-        "name": "ejemplo_usuario",
-        "email": "asds"",
-        "contraseña": "contraseña_secreta"
+        "user": "ejemplo_usuario",
+        "email": "ejemplo@correo.com",
+        "password": "contraseña_secreta"
     }
 ###get all users
 GET http://localhost:3000/users/allUsers
