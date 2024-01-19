@@ -3,6 +3,7 @@ import { MoviesRouter } from "./routes/movies.js";
 import { corsMiddleware } from "./middleware/cors.js";
 import { UserRouter } from "./routes/users.js";
 import bodyParser  from "body-parser";
+import { sessionMiddleware } from "./middleware/sessions.js";
 
 
 
@@ -12,6 +13,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(json());
 app.use(corsMiddleware());
+app.use(sessionMiddleware());
 
 app.use(Express.static('public'))
 app.disable('x-powered-by');

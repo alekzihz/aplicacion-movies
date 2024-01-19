@@ -77,6 +77,8 @@ export class MovieModel{
 
 
     static async getMovieById(id){
+
+        //console.log(session.user)
         const movies = await connect();
         console.log("en model "+typeof(id))
         const movie = await movies.findOne({id: parseInt(id)});

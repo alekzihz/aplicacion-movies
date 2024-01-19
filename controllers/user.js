@@ -4,24 +4,17 @@ import bcrypt from 'bcrypt';
 export default class UserController {
     static async addUser(req, res) {
         try {
-            //const email = req.params.email;
-            //const user = req.params.user;
-            //const password = req.params.password;
-            console.log("en contraolador para add user")
-            const {email,user,password} = req.body;
             
-
-
-
-         
-
+            const {email,user,password} = req.body;
             let hashPassword  = async (password) => {
                 const salt = await bcrypt.genSalt(10);
                 return await bcrypt.hash(password, salt);
             }
 
             const newUser = await UserModel.addUser(email, user, await hashPassword(password));
-            res.status(200).json(newUser);
+            //es.status(200).json(newUser);
+            res.redirect('/login.html');
+
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
@@ -41,6 +34,33 @@ export default class UserController {
         try {
             const users = await UserModel.allUsers();
             res.status(200).json(users);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+
+    static async login(req, res) {
+        try {            
+            const {email,password} = req.body;
+            const user = await UserModel.getUser(email);
+                               
+            if (user) {                
+                const match = await bcrypt.compare(password, user['contraseña']);
+                if (match) {
+
+
+                    req.session.user = {
+                        mail: user.email,
+                        //role: user.role,
+                        // ...otros datos relacionados con el usuario
+                    };
+                    res.redirect('/index.html');
+                } else {
+                    res.status(401).json({ message: 'Unauthorized' });
+                }
+            } else {
+                res.status(404).json({ message: 'User not found' });
+            }
         } catch (error) {
             res.status(500).json({ message: error.message });
         }

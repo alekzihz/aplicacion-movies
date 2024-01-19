@@ -34,7 +34,6 @@ export class UserModel{
     static async getUser(email){
         const users = await connect();
         const user = await users.findOne({email: email})
-        console.log(user)
         return user;
     }
 
