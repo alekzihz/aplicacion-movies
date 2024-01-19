@@ -13,6 +13,7 @@ const RootComponent = {
             page: 1,
             stateScroll: false,
             enableDescription: false,
+            searchON: true,
         };
     },
 
@@ -40,6 +41,7 @@ const RootComponent = {
                 this.movies = [...this.movies, ...data];
                 this.cacheMovies = [...this.cacheMovies, ...data];               
                 this.loading = false;
+                this.movieFiltradas= true;
                 this.page++;
                 this.stateScroll = true;
             } catch (error) {
@@ -48,25 +50,30 @@ const RootComponent = {
                 this.loading = false;
             }
         },
-        controladorBusqueda(moviesFiltradas){
-           
+        controladorBusqueda(moviesFiltradas, activarBusqueda){
             if(moviesFiltradas.length == 0){
                 this.movies = this.cacheMovies;
+                this.searchON = activarBusqueda;
+                this.movieFiltradas = false;
             }
             else{
                 this.movies = moviesFiltradas;
+                this.searchON = activarBusqueda
+                this.movieFiltradas = true;
             }
         },
 
         ControladorScroll(){
-            const scrollY = window.scrollY;
-            const windowHeight = window.innerHeight;
-            const documentHeight = document.documentElement.scrollHeight;
-
-            if (scrollY + windowHeight >= documentHeight - 200) {
-                if(this.stateScroll){
-                    this.stateScroll = !this.stateScroll;
-                    this.getMovie();
+            if (this.searchON == false){
+                const scrollY = window.scrollY;
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight;
+    
+                if (scrollY + windowHeight >= documentHeight - 200) {
+                    if(this.stateScroll){
+                        this.stateScroll = !this.stateScroll;
+                        this.getMovie();
+                    }
                 }
             }
 
@@ -93,16 +100,20 @@ const RootComponent = {
     <div>
         <!--h1>{{ message }}</h1-->
         <!-- Mostrar un indicador de carga mientras se obtienen las películas -->
-        <button class="bg-red-500">Botón Primero</button>
+        <div v-if="searchON && !movieFiltradas">
+            <h1 class ="text-blue-700 text-center-mb4">No resultados</h1>
+        </div>
 
        
-        <FilterMovie :peliculas="movies" @busqueda="controladorBusqueda"></FilterMovie> 
+        <FilterMovie :peliculas="cacheMovies" @busqueda="controladorBusqueda"></FilterMovie> 
         <div class="" v-if="loading">Cargando...</div>
         <!-- Mostrar la lista de películas cuando la carga ha terminado -->
         <!--div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4"-->
-        <div v-if="!loading" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); grid-gap: 1rem;">
-            <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription"></MovieItem>
-        </div>
+            <div v-if="!loading && movieFiltradas" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); grid-gap: 1rem;">
+                <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription"></MovieItem>
+            </div>
+
+            
     </div>
     `
 };
@@ -134,6 +145,11 @@ const MovieItem = {
 
             if (this.movie.resource_image == "") {
 
+                this.movie.resource_image = "images/notfound.webp"
+            }
+
+            /*
+
                 console.log ("buscando: "+this.movie.title)
                 const path_image = this.movie.poster_path;
                 const tmdbUrl = 'https://image.tmdb.org/t/p/w500' + path_image;
@@ -153,9 +169,9 @@ const MovieItem = {
                     
                 } catch (error) {
                     console.error(error);
-                }
-            }
-        },
+                }*/
+            },
+        
 
         showDescription(){   
            this.details=true;
@@ -179,15 +195,23 @@ const MovieItem = {
     },
 
     created(){
-        this.year = this.movie.release_date.substring(0,4);
+        if (this.movie.release_date == null) {
+            this.movie.release_date = "1970-00-00"
+        }
+        
+        if(this.movie.release_date.length > 4)this.year = this.movie.release_date.substring(0,4);
         this.title = this.movie.original_title;      
     },
     template: `
+          
     <section @click="showDescription" >
         <img class="w-full h-full object-cover" :src="movie.resource_image" alt="movie.title">
     <!--div class="bg-white">
         <WidgetJustWatch :title="title" :year="year"></WidgetJustWatch>
     </div-->
+
+  
+
     </section>    
         <DescriptionMovie v-if="description && details" @close="showDescription" :movie="movie" style=" 
         width: 80%;
@@ -287,32 +311,101 @@ const FilterMovie = {
     data(){
         return{
             searchQuery: "",
-            peliculasEncontradas: []
+            peliculasEncontradas: [],
+            categoriaSeleccionada: 1,
+            peliculasChild: this.peliculas,
+            categorias : [{
+                id: 1,
+                name: "All"
+            },
+            {
+                id: 2,
+                name: "Action"
+            },
+            {
+                id: 3,
+                name: "Comedy"
+            },
+            {
+                id: 4,
+                name: "Drama"
+            },
+            {
+                id: 5,
+                name: "Family"
+            
+            }]
         }
 
     },
     methods:{
         searchMovies(){       
             if(this.searchQuery == ""){
+                console.log("categoria selccionada: "+this.categoriaSeleccionada)
                 this.peliculasEncontradas = [];
-                this.$emit("busqueda", this.peliculasEncontradas);
+                this.$emit("busqueda", this.peliculas, false);
+
+                console.log("cuando es vacio")
+                this.categorizadasMovies(this.categoriaSeleccionada);
                 return;
             }
 
             this.peliculasEncontradas = this.peliculas.filter((movie) => {
                 return movie.title.toLowerCase().includes(this.searchQuery.toLowerCase());
             });
-            this.$emit("busqueda", this.peliculasEncontradas);
+            this.$emit("busqueda", this.peliculasEncontradas, true);
+        },
+        changeCategorias(){         
+            this.peliculasEncontradas = [];
+            this.$emit("busqueda", this.peliculas,false);
+
+            console.log(this.peliculasChild.length)
+
+            console.log("antes de filtrar child")
+            if (this.categoriaSeleccionada != 1) {
+                this.peliculasEncontradas = this.peliculas.filter((movie) => {
+                    console.log(this.categorias[this.categoriaSeleccionada-1].name)
+                    movie.genres = typeof movie.genres === 'string' ? JSON.parse(movie.genres.replace(/'/g, '"')) : movie.genres;
+                    if(movie.genres){
+                        for (const categoria of movie.genres) {
+                            if(categoria.name == this.categorias[this.categoriaSeleccionada-1].name){
+                                console.log("he encontrado"+movie.title)
+                                return movie
+                            }
+                        }
+
+                    }
+                });
+                return this.$emit("busqueda", this.peliculasEncontradas,true);
+            }
+            
+        },
+        categorizadasMovies(idCategoria){
+            
+            if (idCategoria!=1){
+
+                console.log("categorizando")
+                this.peliculasEncontradas = this.peliculas.filter((movie) => {
+                    movie.genres = typeof movie.genres === 'string' ? JSON.parse(movie.genres.replace(/'/g, '"')) : movie.genres;
+                    if(movie.genres){
+                        for (const categoria of movie.genres) {
+                            if(categoria.name == this.categorias[idCategoria-1].name){
+                                console.log("he encontrado"+movie.title)
+                                return movie
+                            }
+                        }
+
+                    }
+                });
+                console.log("peliculas encontradas: "+this.peliculasEncontradas.length)
+                return this.$emit("busqueda", this.peliculasEncontradas,true);
+            }
         }
     },
     template:`
     <input v-model="searchQuery" @input="searchMovies" placeholder="Buscar películas" class="p-2 mb-4 border-gray-900 w-full">
-    <select class="p-2 mb-4 border-gray-900 w-full">
-        <option value="1">Todas</option>
-        <option value="2">Acción</option>
-        <option value="3">Comedia</option>
-        <option value="4">Drama</option>
-        <option value="5">Terror</option>
+    <select v-model="categoriaSeleccionada" class="p-2 mb-4 border-gray-900 w-full" @change="changeCategorias">
+        <option @select="" v-for="categoria in categorias" :key="categoria.id" :value="categoria.id">{{categoria.name}}</option>
     </select>
 
     `  

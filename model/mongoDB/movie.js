@@ -5,6 +5,8 @@ dotenv.config();
 
 
 const url = process.env.MONGO_URI;
+console.log(url);
+console.log("tratando de conectar")
 const client = new MongoClient(url);
 
 
@@ -27,7 +29,7 @@ export class MovieModel{
         console.log("enviando page: " +page)
         const movies = await connect();
         //const lista= await movies.find({}).toArray();
-        const lista = await movies.find({}).skip((page - 1) * 100).limit(10).toArray();
+        const lista = await movies.find({}).skip((page - 1) * 6).limit(6).toArray();
 
         const moviesParsed = lista.map(movie => {
           const fixedGenres = typeof movie.genres === 'string' ? movie.genres.replace(/'/g, '"') : null;
