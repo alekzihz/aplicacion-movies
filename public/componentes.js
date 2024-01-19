@@ -18,7 +18,7 @@ const RootComponent = {
     },
 
     mounted() {
-        this.getMovie();
+        this.getMoviesFromJSON();
         window.addEventListener("scroll", this.ControladorScroll);
     },
 
@@ -29,13 +29,11 @@ const RootComponent = {
     },
 
     methods: {
-        async getMovie() {
+        async getMovieApi() {
             try {
-                //console.log("Obteniendo películas...")
                 console.log("page: "+this.page)
                 const response = await fetch(`/movies/all/${this.page}`);
                 const data = await response.json();
-                //this.movies = data;     
                 this.movies = [...this.movies, ...data];
                 this.cacheMovies = [...this.cacheMovies, ...data];               
                 this.loading = false;
@@ -48,6 +46,41 @@ const RootComponent = {
                 this.loading = false;
             }
         },
+
+        async getMoviesFromJSON() {
+            try {        
+                const jsonData = await fetch('appmovie.moviedbE.json'); 
+                const data = await jsonData.json();
+        
+                // Obtener peliculas
+                const startIndex = (this.page - 1) * 10;
+                const endIndex = startIndex + 10;
+                const moviesChunk = data.slice(startIndex, endIndex);
+        
+                
+                if (moviesChunk.length === 0) {
+                    console.log("No hay más películas para cargar.");
+                    this.stateScroll = false;
+                    this.searchON = true; 
+                    return;
+                }
+        
+                // Actualizar la lista de películas
+                this.movies = [...this.movies, ...moviesChunk];
+                this.cacheMovies = [...this.cacheMovies, ...moviesChunk];
+        
+                this.loading = false;
+                this.movieFiltradas = true;
+                this.page++;
+                this.stateScroll = true;
+            } catch (error) {
+                console.error("Error al obtener películas desde el JSON:", error);
+                this.loading = false;
+            }
+        },
+        
+
+
         controladorBusqueda(moviesFiltradas, activarBusqueda){
             if(moviesFiltradas.length == 0){
                 this.movies = this.cacheMovies;
@@ -70,7 +103,7 @@ const RootComponent = {
                 if (scrollY + windowHeight >= documentHeight - 200) {
                     if(this.stateScroll){
                         this.stateScroll = !this.stateScroll;
-                        this.getMovie();
+                        this.getMoviesFromJSON();
                     }
                 }
             }
