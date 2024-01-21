@@ -14,17 +14,28 @@ const RootComponent = {
             stateScroll: false,
             enableDescription: false,
             searchON: false,
+            sessionLogin: null,
+            textButtonLogin: "Login",
         };
     },
 
-    mounted() {
+    async mounted() {
+        await this.getSession();
         this.getMoviesFromJSON();
         window.addEventListener("scroll", this.ControladorScroll);
+
+        if (this.sessionLogin.message == "Unauthorized") {
+            this.textButtonLogin = "Login";
+        }
+        else{
+            this.textButtonLogin = "Logout";
+        }
+
     },
 
     watch:{
         movies(){
-            console.log((this.movies.length))
+            //console.log((this.movies.length))
         }
     },
 
@@ -79,8 +90,6 @@ const RootComponent = {
             }
         },
         
-
-
         controladorBusqueda(moviesFiltradas, activarBusqueda){
             if(moviesFiltradas.length == 0){
                 this.movies = this.cacheMovies;
@@ -107,8 +116,47 @@ const RootComponent = {
                     }
                 }
             }
+        },
 
+        async getSession(){
+            try {
+                const response = await fetch(`/users/session`);
+                this.sessionLogin = await response.json();
+                
+            } catch (error) {
+                console.error("Error al obtener películas:", error);
+                // Manejar el error de alguna manera, por ejemplo, establecer this.loading en false
+                this.sessionLogin = null;
+            }
 
+        },
+
+            async logout(){
+                try {
+                    const response = await fetch(`/users/logout`,{
+                        method: 'GET',
+                        credentials: 'include',
+                    });
+                    if(response.ok){
+                        this.sessionLogin = null;
+                        window.location.href = "index.html";
+                    }
+                    
+                    //this.sessionLogin = await response.json();
+                    //window.location.href = "login.html";
+                } catch (error) {
+                    console.error("Error al obtener películas:", error);
+                    // Manejar el error de alguna manera, por ejemplo, establecer this.loading en false
+                    //this.sessionLogin = null;
+                }
+            },
+
+        operationLogin(){
+            if (this.sessionLogin.message == "Unauthorized") {
+                window.location.href = "login.html";
+            }else{
+                this.logout();
+            }
         },
 
         beforeDestroy() {
@@ -121,7 +169,7 @@ const RootComponent = {
     },
 
     created() {
-        //this.page=1;
+
     },
 
   
@@ -130,24 +178,32 @@ const RootComponent = {
     
     <div>
         <!--h1>{{ message }}</h1-->
-        <!-- Mostrar un indicador de carga mientras se obtienen las películas -->
-       
-       
+        <!-- Mostrar un indicador de carga mientras se obtienen las películas --> 
+        <div style="background:blue; position:fixed; left:90%; top:10px; padding: 10px">
+            <button  id="buttonLogin" @click="operationLogin">{{textButtonLogin}}</button>
+        </div>
         <FilterMovie :peliculas="cacheMovies" @busqueda="controladorBusqueda"></FilterMovie> 
         <div class="" v-if="loading">Cargando...</div>
         <!-- Mostrar la lista de películas cuando la carga ha terminado -->
         <!--div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4"-->
-            <div v-if="!loading && movieFiltradas" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); grid-gap: 1rem;">
-                <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription"></MovieItem>
-            </div>
-
-            
+         
+        
+        
+        <div v-if="!loading && movieFiltradas" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); grid-gap: 1rem;">
+                <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription" :logged="sessionLogin.logged"></MovieItem>
+            </div>            
     </div>
+
+    
+
+
+
+
     `
 };
 
 const MovieItem = {
-    props: ["movie","description"],
+    props: ["movie","description",'logged'],
     emits:["show"],
 
     data() {
@@ -158,6 +214,8 @@ const MovieItem = {
            title:"",
            countMovies:0, //no se usa
            details: false,
+           likeText: '🤍',
+           log: false
           
         };
     },
@@ -204,22 +262,47 @@ const MovieItem = {
         showDescription(){   
            this.details=true;
            this.$emit("show");
+           let categor = [];
+          // categor = this.movie.genres === 'string' ? JSON.parse(this.movie.genres.replace(/'/g, '"')) :this.movie.genres;
+           
+           //console.log(typeof this.movie.genres)
+           //console.log(categor.name)
+           //let movie = null;
+           
+
+
+        },
+
+        like(){
+            
+            if(this.likeText == '🤍'){
+                this.likeText = '❤️';
+            }
+            else{
+                this.likeText = '🤍';
+            }
+            //if(this.likeText == '❤️')this.likeText = '🤍';
+            
         }
         
 
     },
 
     watch: {
+        //para cerrar las descripciones
         description(newVal){
             if(newVal==false){
                 this.details=false;
+
+                
             }
         }
     },
     
 
     mounted() {
-        this.getImage();          
+        this.getImage();     
+        this.log=this.logged;     
     },
 
     created(){
@@ -229,17 +312,14 @@ const MovieItem = {
         
         if(this.movie.release_date.length > 4)this.year = this.movie.release_date.substring(0,4);
         this.title = this.movie.original_title;      
+
+        //console.log(this.log)
     },
     template: `
           
-    <section @click="showDescription" >
-        <img class="w-full h-full object-cover" :src="movie.resource_image" alt="movie.title">
-    <!--div class="bg-white">
-        <WidgetJustWatch :title="title" :year="year"></WidgetJustWatch>
-    </div-->
-
-  
-
+    <section @click="showDescription">
+        <img  class="w-full h-full object-cover" :src="movie.resource_image" alt="movie.title">
+        <button v-if="log !== undefined || log === true" @click="like" class="">{{ likeText }}</button>
     </section>    
         <DescriptionMovie v-if="description && details" @close="showDescription" :movie="movie" style=" 
         width: 80%;
@@ -266,13 +346,22 @@ const DescriptionMovie = {
       };
     },
 
+    methods:{
+       
+    },
+           
+          
+
+
+
+   mounted(){
+        //this.getMoviesRecomendacion();
+    },
+
 
     template: `
     <div>
-    <div style= "
-    margin-left: 95%;
-  
-    ">
+    <div style= "margin-left: 95%;">
         <button @click="closeDescription" class="text-2xl font-bold text-white">X</button>
     </div>
 
@@ -280,7 +369,16 @@ const DescriptionMovie = {
       <img class="w-3/6 h-3/6 object-cover" :src="movie.resource_image" alt="movie.title">
       <h1>{{ movie.title }}</h1>
       <h2>{{ movie.overview }}</h2>
+      <h2>{{ movie.release_date }}</h2>
+      <h2>{{ movie.genres }}</h2>
     </div>
+
+    <div class="bg-white">
+        <legend>Where to watch</legend>
+        <WidgetJustWatch :title="movie.title" :year="movie.release_date"></WidgetJustWatch>
+    </div>
+
+    
 
     <article>
       <div>
@@ -301,22 +399,68 @@ const DescriptionMovie = {
 
 const WidgetJustWatch = {
     props:["title","year"],
-    mounted(){
-        if (!window.JustWatch) {
-            const script = document.createElement("script");
-            script.src = "https://widget.justwatch.com/justwatch_widget.js";
-            script.async = true;
-            script.onload = this.initializeJustWatchWidget;
-      
-            document.head.appendChild(script);
-          }
-        
-        
-        
-        if (window.JWInit) {
-            window.JWInit();
-          }
 
+    data(){
+        return{
+            //movie: this.title,
+            yearFormatted: this.year
+        }
+    },
+
+   mounted(){
+        this.cargarPlataformas();
+
+        
+    },
+
+  
+
+    methods: {
+        destroyWidget() {
+            const widgetElement = document.querySelector('[data-jw-widget]');
+            if (widgetElement) {
+                widgetElement.parentNode.removeChild(widgetElement);
+            }
+        },
+
+        cargarPlataformas(){
+            if (this.year == null) {
+                this.year = new Date("1970-01-01");
+            }
+            
+            this.yearFormatted = new Date(this.year["$date"]).getFullYear();
+            console.log(this.year)
+            if (!window.JustWatch) {
+                const script = document.createElement("script");
+                script.src = "https://widget.justwatch.com/justwatch_widget.js";
+                script.async = true;
+                script.onload = this.initializeJustWatchWidget;
+          
+                document.head.appendChild(script);
+              }
+              else{
+                const widgetElement = document.querySelector('[data-jw-widget]');
+                //widgetElement.parentNode.removeChild(widgetElement);
+                this.destroyWidget();
+                const script = document.createElement("script");
+                script.src = "https://widget.justwatch.com/justwatch_widget.js";
+                script.async = true;
+                script.onload = this.initializeJustWatchWidget;
+          
+                document.head.appendChild(script);
+              }
+              
+          
+            
+            if (window.JWInit) {
+                window.JWInit();
+              }
+    
+
+        }
+    },
+    beforeDestroy() {
+        this.destroyWidget();
     },
 
     template:`
@@ -324,7 +468,7 @@ const WidgetJustWatch = {
          data-api-key="ABCdef12"
          data-object-type="movie"
          :data-title="title"
-         :data-year="year"
+         :data-year="yearFormatted"
     ></div>
     
     `
@@ -421,6 +565,7 @@ const FilterMovie = {
         }
     },
     template:`
+
     <div style="display: flex; align-items: center;">
     <input v-model="searchQuery" @input="searchMovies" placeholder="Buscar películas" class="p-2 mb-4 border-gray-900">
     <select id="countries" class="p-2 mb-4 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">

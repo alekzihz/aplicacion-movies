@@ -10,5 +10,7 @@ UserRouter.post('/addUser',UserController.addUser)
 UserRouter.get('/getUser/:email',UserController.getUser);
 UserRouter.get('/allUsers',UserController.allUsers);
 UserRouter.post('/login',UserController.login);
+UserRouter.get('/logout',UserController.logout);
+UserRouter.get('/session',UserController.session);
 //UserRouter.get('/logout',UserController.logout);
 //UserRouter.get('/getUser/:email',UserController.session);

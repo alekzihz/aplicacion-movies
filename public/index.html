@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="dist/output.css" rel="stylesheet">
-
-
     <title>App Movies</title>
 </head>
 
@@ -15,12 +16,7 @@
 </header>
 <body class="bg-black">
 
-    <div id="fixedButton">
-        <a href="login">
-            <button>Login</button>
-        </a>
-    </div>
-    
+
     <div id="app" class=""></div>
     <script type="text/javascript"  src="componentes.js" charset="utf-8"></script>
 </body>
@@ -34,7 +30,7 @@
     }
 
     #fixedButton {
-        position: fixed;
+        position:fixed;
         top: 10px; /* Ajusta la distancia desde la parte superior según tus preferencias */
         left: 95%; /* Ajusta la distancia desde la izquierda según tus preferencias */
         background-color: blue;

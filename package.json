@@ -12,6 +12,8 @@
   "author": "Alexis Diaz",
   "license": "ISC",
   "dependencies": {
+    "@tensorflow/tfjs": "^4.16.0",
+    "axios": "^1.6.5",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cors": "2.8.5",

@@ -42,6 +42,8 @@ export default class UserController {
     static async login(req, res) {
         try {            
             const {email,password} = req.body;
+
+            console.log(email,password)
             const user = await UserModel.getUser(email);
                                
             if (user) {                
@@ -51,8 +53,7 @@ export default class UserController {
 
                     req.session.user = {
                         mail: user.email,
-                        //role: user.role,
-                        // ...otros datos relacionados con el usuario
+                        logged: true,
                     };
                     res.redirect('/index.html');
                 } else {
@@ -60,6 +61,34 @@ export default class UserController {
                 }
             } else {
                 res.status(404).json({ message: 'User not found' });
+            }
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+
+    static async session(req, res) {
+        try {
+            if (req.session.user) {
+                res.status(200).json(req.session.user);
+            } else {
+                res.status(401).json({ message: 'Unauthorized' });
+            }
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+
+    static async logout(req, res) {
+        try {
+            if (req.session.user) {
+
+                //console.log("en looggut");
+                req.session.destroy();
+                //res.redirect('/index.html');
+                res.status(200).json({ message: 'Logout success' });
+            } else {
+                res.status(401).json({ message: 'Unauthorized' });
             }
         } catch (error) {
             res.status(500).json({ message: error.message });

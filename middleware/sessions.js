@@ -7,6 +7,8 @@ export const sessionMiddleware = () =>{
         secret: 'mi-secreto',
         resave: false,
         saveUninitialized: true,
+        cookie: { secure: false }, // Ajusta según tu entorno
+
     })
     
 }
