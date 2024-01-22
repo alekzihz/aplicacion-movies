@@ -8,10 +8,6 @@
 
 
 
-Este es mi increíble proyecto que utiliza Tailwind CSS para el estilo, TensorFlow para el aprendizaje profundo y Node.js para el backend. ¡Espero que te guste!
-
-
-
 # Aplicación Movies
 
 Bienvenido a la aplicación Movies. Esta aplicación está construida con Node.js y requiere la versión 18 o superior para su ejecución.
