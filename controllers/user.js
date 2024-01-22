@@ -13,7 +13,7 @@ export default class UserController {
 
             const newUser = await UserModel.addUser(email, user, await hashPassword(password));
             //es.status(200).json(newUser);
-            res.redirect('/login.html');
+            res.redirect('/');
 
         } catch (error) {
             res.status(500).json({ message: error.message });
