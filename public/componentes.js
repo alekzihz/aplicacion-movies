@@ -64,8 +64,8 @@ const RootComponent = {
                 const data = await jsonData.json();
         
                 // Obtener peliculas
-                const startIndex = (this.page - 1) * 700;
-                const endIndex = startIndex + 700;
+                const startIndex = (this.page - 1) * 60;
+                const endIndex = startIndex + 60;
                 const moviesChunk = data.slice(startIndex, endIndex);
         
                 
