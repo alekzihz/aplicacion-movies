@@ -32,4 +32,5 @@ npm run dev
 
 3. las dependencias ya estan subidas por tanto no hace falta instalar nada. 
 
-s.
+4. Se puede acceder desde remoto por la URL 
+https://aplicacion-movies-dev-pfra.1.ie-1.fl0.io
