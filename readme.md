@@ -1,4 +1,4 @@
-# Mi Proyecto con Tailwind CSS, TensorFlow y Node.js
+# Aplicacion de seleccion de peliculas con algoritmos de aprendizaje. 
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6-blue)](https://www.javascript.com/)
 [![HTML](https://img.shields.io/badge/HTML-5-orange)](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5)
 [![CSS](https://img.shields.io/badge/CSS-3-blueviolet)](https://developer.mozilla.org/en-US/docs/Web/CSS)
