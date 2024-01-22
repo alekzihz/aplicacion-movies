@@ -1,3 +1,9 @@
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6-blue)](https://www.javascript.com/)
+[![HTML](https://img.shields.io/badge/HTML-5-orange)](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5)
+[![CSS](https://img.shields.io/badge/CSS-3-blueviolet)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+[![Python](https://img.shields.io/badge/Python-3.8-yellow)](https://www.python.org/)
+
+
 # Aplicación Movies
 
 Bienvenido a la aplicación Movies. Esta aplicación está construida con Node.js y requiere la versión 18 o superior para su ejecución.
