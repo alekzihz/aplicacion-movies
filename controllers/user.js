@@ -42,8 +42,6 @@ export default class UserController {
     static async login(req, res) {
         try {            
             const {email,password} = req.body;
-
-            console.log(email,password)
             const user = await UserModel.getUser(email);
                                
             if (user) {                
@@ -54,6 +52,7 @@ export default class UserController {
                     req.session.user = {
                         mail: user.email,
                         logged: true,
+                        id: user._id
                     };
                     res.redirect('/index.html');
                 } else {

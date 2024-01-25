@@ -39,3 +39,23 @@ Content-Type: application/json
     "id": 842,
     "resource_image": "https://image.tmdb.org/t/p/w500/8UlWHLMpgZm9bx6QYh0NFoq67TZ.jpg"
 }
+
+
+###addLike
+
+POST http://localhost:3000/likes/addLike
+Content-Type: application/json
+
+{
+    "id": 842,
+    "email": ""
+}
+
+###getLikes
+post http://localhost:3000/likes/movieUser
+Content-Type: application/json
+
+{
+    "movie":10858,
+    "userMail": "d.alexis.g@hotmail.com"
+}

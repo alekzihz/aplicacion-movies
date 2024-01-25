@@ -1,12 +1,11 @@
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
+import tf from '@tensorflow/tfjs';
 
 dotenv.config();
 
 
 const url = process.env.MONGO_URI;
-console.log(url);
-console.log("tratando de conectar")
 const client = new MongoClient(url);
 
 
@@ -80,7 +79,7 @@ export class MovieModel{
 
         //console.log(session.user)
         const movies = await connect();
-        console.log("en model "+typeof(id))
+        //console.log("en model "+typeof(id))
         const movie = await movies.findOne({id: parseInt(id)});
 
         movie.genres = typeof movie.genres === 'string' ? JSON.parse(movie.genres.replace(/'/g, '"')) : null;
@@ -91,8 +90,6 @@ export class MovieModel{
         return movie
        
     }
-
-    
 
     static async getAllMovies(){
       const movies = await connect()
@@ -114,4 +111,20 @@ export class MovieModel{
 
     return moviesParsed;
   }
+
+  static async getRecomendationMovies(user){
+    try{
+      
+    return true;
+
+    }
+    catch{
+      console.log("Error modelo de aprendizaje")
+    }
+
+    
+
+   
+  }
+      
 }

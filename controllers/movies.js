@@ -1,5 +1,6 @@
 import { MovieModel } from "../model/mongoDB/movie.js";
 
+
 export default class MovieController {
     static async getMovies(req, res) {
         try {
@@ -65,6 +66,17 @@ export default class MovieController {
                 return res.send(Buffer.from(await image.arrayBuffer()));
             }
         } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+
+    static async getRecomendationMovies(req, res) {
+        try {
+            const user = req.params.user;
+            const movies = await MovieModel.getRecomendationMovies(user);
+            res.status(200).json(movies);
+        } catch (error) {
+            console.log("Error en obtener recomendaciones")
             res.status(500).json({ message: error.message });
         }
     }

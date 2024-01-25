@@ -2,8 +2,11 @@ import Express, {json } from "express";
 import { MoviesRouter } from "./routes/movies.js";
 import { corsMiddleware } from "./middleware/cors.js";
 import { UserRouter } from "./routes/users.js";
+import { LikeRouter } from "./routes/likes.js";
 import bodyParser  from "body-parser";
+import  cors  from "cors";
 import { sessionMiddleware } from "./middleware/sessions.js";
+
 
 
 
@@ -14,6 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(json());
 app.use(corsMiddleware());
 app.use(sessionMiddleware());
+app.use(cors());
 
 app.use(Express.static('public'))
 app.disable('x-powered-by');
@@ -22,6 +26,7 @@ app.disable('x-powered-by');
 
 app.use('/movies', MoviesRouter);
 app.use('/users', UserRouter);
+app.use('/likes', LikeRouter);
 app.use('/login', Express.static('public/login.html'));
 app.use('/es-spain', Express.static('public/registrar.html'));
 

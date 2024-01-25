@@ -3,8 +3,8 @@ import fetch from 'node-fetch';
 
 
 //const url = 'https://api.themoviedb.org/3/movie/31357/images';
-//let id = 842;
-//const urlMovieId = `http://localhost:3000/movies/findmovie/${id}`;
+let id = 842;
+const urlMovieId = `http://localhost:3000/movies/findmovie/${id}`;
 //const urlImagen= `https://api.themoviedb.org/3/movie/${id}/images?include_image_language=es`;
 const allMovies = `http://localhost:3000/movies/everything`;
 
@@ -17,11 +17,10 @@ const allMovies = `http://localhost:3000/movies/everything`;
 
 
 
-fetch (allMovies).then(res => res.json()).then(movie => 
+fetch (urlMovieId).then(res => res.json()).then(movie => 
   {
     
-    for (const movies of movie) {
-      let id = movies.id;
+      let id = movie.id;
       let urlResourceImage = 0
       const options = {
         method: 'GET',
@@ -31,7 +30,7 @@ fetch (allMovies).then(res => res.json()).then(movie =>
         }
       };
 
-      const urlImagen= `https://api.themoviedb.org/3/movie/${id}/images`;
+      const urlImagen= `https://api.themoviedb.org/3/movie/${id}/images?include_image_language=en`;
       fetch(urlImagen, options).then(res => res.json()).then(imagen => 
         {
           if (imagen.posters && imagen.posters.length > 0)urlResourceImage= "https://image.tmdb.org/t/p/w500"+imagen.posters[0].file_path;
@@ -64,7 +63,7 @@ fetch (allMovies).then(res => res.json()).then(movie =>
     
     
     
-    }
+    
 
    
 

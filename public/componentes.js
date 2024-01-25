@@ -4,6 +4,7 @@ const RootComponent = {
         return {
             movies: [],
             cacheMovies: [],
+            allMovies:[],
             movieFiltradas:"",
             message: "APP Movies!",
             loading: true,
@@ -62,6 +63,7 @@ const RootComponent = {
             try {        
                 const jsonData = await fetch('appmovie.moviedbE.json'); 
                 const data = await jsonData.json();
+                this.allMovies = data;
         
                 // Obtener peliculas
                 const startIndex = (this.page - 1) * 60;
@@ -190,7 +192,7 @@ const RootComponent = {
         
         
         <div v-if="!loading && movieFiltradas" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); grid-gap: 1rem;">
-                <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription" :logged="sessionLogin.logged"></MovieItem>
+                <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription" :user="sessionLogin"></MovieItem>
             </div>            
     </div>
 
@@ -203,7 +205,7 @@ const RootComponent = {
 };
 
 const MovieItem = {
-    props: ["movie","description",'logged'],
+    props: ["movie","description",'user'],
     emits:["show"],
 
     data() {
@@ -215,7 +217,8 @@ const MovieItem = {
            countMovies:0, //no se usa
            details: false,
            likeText: '🤍',
-           log: false
+           log: false,
+           movieLiked :  false
           
         };
     },
@@ -276,13 +279,65 @@ const MovieItem = {
         like(){
             
             if(this.likeText == '🤍'){
-                this.likeText = '❤️';
+                this.likeText = '❤️';   
+                console.log(this.movie.id)
+            console.log(this.user.mail)
+                this.likeMovie();
             }
             else{
                 this.likeText = '🤍';
+                this.removeLikeMovie();
             }
             //if(this.likeText == '❤️')this.likeText = '🤍';
             
+        },
+
+        async likeMovie(){
+            const like = await fetch('/likes/addLike',{                    
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    movie: this.movie.id,
+                    userMail: this.user.mail
+                })
+            }); 
+        },
+
+        async removeLikeMovie(){
+            const like = await fetch('/likes/removeLike',{                    
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    movie: this.movie.id,
+                    userMail: this.user.mail
+                })
+            });
+        },
+
+        async getLikeMovie(){
+            const like = await fetch('/likes/movieUser',{                    
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    movie: this.movie.id,
+                    userMail: this.user.mail
+                })
+            }); 
+            const data = await like.text();
+            if (data == "true") {
+                this.likeText = '❤️';
+                this.movieLiked = true;
+            }
+            else{
+                this.likeText = '🤍';
+                this.movieLiked = false;
+            }
         }
         
 
@@ -302,12 +357,15 @@ const MovieItem = {
 
     mounted() {
         this.getImage();     
-        this.log=this.logged;     
+        this.log=this.user.logged;  
+        if(this.log===true) {
+            this.getLikeMovie();
+        }   
     },
 
     created(){
         if (this.movie.release_date == null) {
-            this.movie.release_date = "1970-00-00"
+            this.movie.release_date = "1970-01-01"
         }
         
         if(this.movie.release_date.length > 4)this.year = this.movie.release_date.substring(0,4);
@@ -317,8 +375,8 @@ const MovieItem = {
     },
     template: `
           
-    <section @click="showDescription">
-        <img  class="w-full h-full object-cover" :src="movie.resource_image" alt="movie.title">
+    <section>
+        <img @click="showDescription" style="cursor:pointer"  class="w-full h-full object-cover" :src="movie.resource_image" alt="movie.title">
         <button v-if="log !== undefined || log === true" @click="like" class="">{{ likeText }}</button>
     </section>    
         <DescriptionMovie v-if="description && details" @close="showDescription" :movie="movie" style=" 
@@ -512,6 +570,7 @@ const FilterMovie = {
     },
     methods:{
         searchMovies(){       
+            console.log(this.peliculas.length)
             if(this.searchQuery == ""){
                 console.log("categoria selccionada: "+this.categoriaSeleccionada)
                 this.peliculasEncontradas = [];
@@ -563,6 +622,10 @@ const FilterMovie = {
                 return this.$emit("busqueda", this.peliculasEncontradas,true);
             }
         }
+    },
+
+    mounted(){
+        console.log(this.peliculas.length)
     },
     template:`
 
