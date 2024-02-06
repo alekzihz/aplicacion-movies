@@ -40,4 +40,14 @@ export default class LikeController {
         }
     }
 
+    static async getLikesByUser(req, res){
+        try {
+            const email = req.params.email;
+            const likes = await LikeModel.getLikesByUser(email);
+            res.status(200).json(likes);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+
 }

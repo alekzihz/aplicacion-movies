@@ -1,6 +1,15 @@
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 import tf from '@tensorflow/tfjs';
+import { LikeModel } from './like.js';
+import { ReadJson } from './read.js';
+//import {svd} from 'svd-js';
+import { SVD } from 'svd-js'
+import {spawn} from 'child_process';
+import { Model } from 'mongoose';
+
+
+
 
 dotenv.config();
 
@@ -112,9 +121,107 @@ export class MovieModel{
     return moviesParsed;
   }
 
-  static async getRecomendationMovies(user){
+  static async getRecomendationMoviesTensor(user){
     try{
+      //const Movies = await ReadJson.getData(); //todas las peliculas
+      const [Movies, Generos] = await ReadJson.getData(); //todas las peliculas y generos
+      const UserMovies = await LikeModel.getLikesByUser(user); //peliculas que le gustan al usuario
+
+      const idMovies = UserMovies.map(movie => movie.movie); //id de las peliculas que le gustan al usuario
+     
+      const myGenres = new Set();
+      UserMovies.map(movie => {
+        const movieId = movie.movie;
+
+        Movies.forEach((movie,index)=>{
+          if(movie.id===movieId){
+            movie.genres = typeof movie.genres === 'string' ? JSON.parse(movie.genres.replace(/'/g, '"')) : movie.genres;
+            movie.genres.forEach(genre => myGenres.add(genre.name));
+          }
+        })
+      }); //generos de las peliculas que le gustan al usuario
       
+      //console.log(myGenres);
+  
+      //console.log(Generos)
+    
+      const mapMovie = new Map();
+      UserMovies.forEach((movie,index)=>{
+        const movieId = movie.movie;
+        if(!mapMovie.has(movieId)){
+          mapMovie.set(movieId,mapMovie.size);
+        }
+      })
+
+    
+
+      const userData = new Array(Movies.length).fill(0);
+      UserMovies.forEach((movie,index)=>{
+        const movieId = movie.movie;
+        const movieIndex = mapMovie.get(movieId);
+        userData[movieIndex]=1;
+      })
+
+
+      const numGenres = Generos.length;
+      const oneHotVector = new Array(numGenres).fill(0); // Inicializa un vector de ceros
+      
+      const movieGenres = Array.from(myGenres); //género de las peliculas de un usuario
+
+      // Establece en 1 las posiciones correspondientes a los géneros de la película
+      movieGenres.forEach(genre => {
+        const index = Generos.indexOf(genre);
+        if (index !== -1) {
+          oneHotVector[index] = 1;
+        }
+      });
+
+      console.log(oneHotVector)
+
+      //oneHotVector mis caracteristicas a buscar
+      //generos a buscar
+
+      const modeloRecomendacion = tf.sequential();
+
+      modeloRecomendacion.add(tf.layers.dense({units: 64, inputShape: [userData.length + oneHotVector.length]}));
+      modeloRecomendacion.add(tf.layers.dense({units: 32, activation: 'relu'}));
+      modeloRecomendacion.add(tf.layers.dense({units: 1, activation: 'sigmoid'})); // Salida binaria (like/no like)
+
+    // Compilar el modelo
+    modeloRecomendacion.compile({optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy']});
+
+    const caracteristicas = [...userData, ...oneHotVector];
+    const predic = modeloRecomendacion.predict(tf.tensor([caracteristicas]));
+    console.log(predic.length)
+
+    for (let i = 0; i < predic.length; i++) {
+      const prediction = predic[i][0]; 
+      // Determinar si la película es recomendada o no basada en la predicción
+      const recommendation = prediction > 0.5 ? 'Recomendada' : 'No recomendada';
+      
+      console.log(`Película ${i + 1}: Predicción de que le gusta al usuario: ${prediction.toFixed(4)} (${recommendation})`);
+    }
+
+
+// Visualizar la arquitectura del modelo
+  //modeloRecomendacion.summary();
+      
+    
+
+
+
+     
+
+
+
+
+
+
+    
+    
+
+    
+
     return true;
 
     }
@@ -126,5 +233,126 @@ export class MovieModel{
 
    
   }
+
+  static async getRecomendationMovies(user){
+
+    const [Movies, Generos] = await ReadJson.getData(); 
+    const UserMovies = await LikeModel.getLikesByUser(user); //peliculas que le gustan al usuario
+
+
+    const idMovies = UserMovies.map(movie => movie.movie); 
+    const myGenres = new Set(); //generos de las peliculas que le gustan al usuario
+    UserMovies.map(movie => {
+      const movieId = movie.movie;
+        Movies.forEach((movie,index)=>{
+          if(movie.id===movieId){
+            movie.genres = typeof movie.genres === 'string' ? JSON.parse(movie.genres.replace(/'/g, '"')) : movie.genres;
+            movie.genres.forEach(genre => myGenres.add(genre.name));
+          }
+        })
+      }); //generos de las peliculas que le gustan al usuario
+      
+      //peliculas filtradas por genero del usuario
+
+
+    const myGenresString = [...myGenres].join(' ').toLowerCase();
+    
+    const pythonRecomendaciones = await this.executePythonScript(myGenresString);
+    console.log("aqui en recomenda")
+    return;
+    
+
+      
+    
+      const mapMovie = new Map();
+      UserMovies.forEach((movie,index)=>{
+        const movieId = movie.movie;
+        if(!mapMovie.has(movieId)){
+          mapMovie.set(movieId,mapMovie.size);
+        }
+      })
+
+    
+      //peliculas preferidas en un conjunto de 45k peliculas
+      const userData = new Array(Movies.length).fill(0);
+
+      //filtrar peliculas segun el genero que le gusta al usuario
+
+     
+      //data de peliculas preferidas
+      UserMovies.forEach((movie,index)=>{
+        const movieId = movie.movie;
+        const movieIndex = mapMovie.get(movieId);
+        userData[movieIndex]=1;
+      })
+
+      let data = Array.from(userData);
+
+
+      const matrizDatos = Movies.map(pelicula => [
+        pelicula.budget,
+        pelicula.popularity,
+        pelicula.revenue,
+        pelicula.runtime,
+        pelicula.vote_average,
+        pelicula.vote_count
+    ]);
+
+      //console.log(matrizDatos);
+      //console.log(userData.length)
+      const { u, v, q } = SVD(matrizDatos);
+
+      console.log(u)
+      console.log(v)
+      console.log(q)
+  
+      const vectorSingularDerecho = V.map(row => row[0]);
+
+      const recomendaciones = peliculasFiltradas.sort((a, b) =>
+        vectorSingularDerecho[peliculas.indexOf(b)] - vectorSingularDerecho[peliculas.indexOf(a)]
+    ).map(pelicula => pelicula.titulo);
+
+    console.log(recomendaciones);
+
+
+
+     
+
+
+  }
+
+  static async executePythonScript(userGeneros){
+
+        const pythonScriptPath = 'script.py';
+    // Argumentos que puedes pasar al script de Python si es necesario
+        const args = [userGeneros, 'arg2'];
+
+    
+        return new Promise((resolve, reject) => {
+          const pythonProcess = spawn('python', [pythonScriptPath, ...args]);
+          let dataBuffer = '';
+  
+          // Captura la salida del script de Python
+          pythonProcess.stdout.on('data', (data) => {
+              dataBuffer += data.toString();
+              console.log("on process "+data)
+          });
+  
+          // Maneja cualquier error durante la ejecución del script de Python
+          pythonProcess.stderr.on('data', (data) => {
+              reject(`Error en el script de Python: ${data}`);
+          });
+  
+          // Maneja el cierre del proceso de Python
+          pythonProcess.on('close', (code) => {
+              if (code === 0) {
+                  resolve(dataBuffer);
+              } else {
+                  reject(`Proceso de Python cerrado con código ${code}`);
+              }
+          });
+      });
+  }
+
       
 }

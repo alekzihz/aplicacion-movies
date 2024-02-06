@@ -56,6 +56,12 @@ post http://localhost:3000/likes/movieUser
 Content-Type: application/json
 
 {
-    "movie":10858,
+    "movie":8844,
     "userMail": "d.alexis.g@hotmail.com"
 }
+
+###getLikesByUser
+get http://localhost:3000/likes/getLikesByUser/d.alexis.g@hotmail.com
+
+###getRecomendacion
+get http://localhost:3000/movies/recomendationMovies/d.alexis.g@hotmail.com

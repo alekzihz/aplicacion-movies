@@ -43,9 +43,9 @@ async function connect() {
         return newLike;
     }
 
-    static async getLikes(userId){
+    static async getLikesByUser(user){
         const likes = await connect();
-        const lista = await likes.find({userId: userId}).toArray();
+        const lista = await likes.find({user: user}).toArray();
         return lista;
     }
 

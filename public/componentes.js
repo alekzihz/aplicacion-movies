@@ -234,7 +234,7 @@ const MovieItem = {
 
             if (this.movie.resource_image == "") {
 
-                this.movie.resource_image = "images/notfound.webp"
+                this.movie.resource_image = "images/peakpx.jpg"
             }
 
             /*
@@ -379,18 +379,21 @@ const MovieItem = {
         <img @click="showDescription" style="cursor:pointer"  class="w-full h-full object-cover" :src="movie.resource_image" alt="movie.title">
         <button v-if="log !== undefined || log === true" @click="like" class="">{{ likeText }}</button>
     </section>    
-        <DescriptionMovie v-if="description && details" @close="showDescription" :movie="movie" style=" 
-        width: 80%;
-        height: 100%;
+    <DescriptionMovie v-if="description && details" @close="showDescription" :movie="movie" style=" 
+        width: 90%;
+        max-height: 90%; /* Ajusta la altura máxima según sea necesario */
         background-color: white;
-        position: absolute;
-        top: 0;
-        left: 0;
-        overflow-y: scroll;
-        justify-content: center;
-        align-items: center;">
-        
-        </DescriptionMovie>
+        position: fixed; /* Cambiado a fixed para que se mantenga en el centro al hacer scroll */
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%); /* Centra vertical y horizontalmente */
+        overflow-y: auto; /* Usar auto en lugar de scroll para mostrar la barra de desplazamiento solo cuando sea necesario */
+        border-radius: 10px; /* Añadir bordes redondeados */
+        padding: 20px; /* Añadir espacio interno */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Añadir sombra */
+        ">
+    
+    </DescriptionMovie>
    
     `
 }
@@ -405,45 +408,42 @@ const DescriptionMovie = {
     },
 
     methods:{
+
        
     },
            
-          
-
-
-
+        
    mounted(){
         //this.getMoviesRecomendacion();
+        this.formatGeneros(this.movie.genres);
     },
 
 
     template: `
-    <div>
-    <div style= "margin-left: 95%;">
-        <button @click="closeDescription" class="text-2xl font-bold text-white">X</button>
+    <div class="modal-container">
+    <div class="modal-header">
+      <button @click="closeDescription" class="close-button">×</button>
     </div>
 
-    <div class="relative">
-      <img class="w-3/6 h-3/6 object-cover" :src="movie.resource_image" alt="movie.title">
-      <h1>{{ movie.title }}</h1>
-      <h2>{{ movie.overview }}</h2>
-      <h2>{{ movie.release_date }}</h2>
-      <h2>{{ movie.genres }}</h2>
-    </div>
-
-    <div class="bg-white">
-        <legend>Where to watch</legend>
-        <WidgetJustWatch :title="movie.title" :year="movie.release_date"></WidgetJustWatch>
-    </div>
-
-    
-
-    <article>
-      <div>
-        This is a simple modal popup in Vue.js
+    <div class="movie-details">
+      <img class="movie-poster" :src="movie.resource_image" alt="movie.title">
+      <div class="movie-info">
+        <h1 class="movie-title">{{ movie.title }}</h1>
+        <p class="movie-overview">{{ movie.overview }}</p>
+        Generos:<p class="movie-genres">{{ movie.genres }}</p>
+        Puntuacion:<p class="movie-genres">{{ movie.vote_average }}</p>
+        Popularidad:<p class="movie-genres">{{ movie.popularity }}</p>
       </div>
-    </article>
     </div>
+
+    <div class="watch-options">
+      <legend class="watch-heading">Where to watch</legend>
+      <WidgetJustWatch :title="movie.title" :year="movie.release_date"></WidgetJustWatch>
+    </div>
+  </div>
+
+
+
 
     `,
     methods: {
@@ -451,9 +451,26 @@ const DescriptionMovie = {
         this.$emit("close");
       },
 
+      formatGeneros(generos){
+
+        if (generos == null) {
+            return;
+        }
+        generos = typeof generos === 'string' ? JSON.parse(generos.replace(/'/g, '"')) : generos;
+        let generosFormateados = "";
+        for (const genero of generos) {
+            generosFormateados += genero.name + ", ";
+        }
+        this.movie.genres = generosFormateados.substring(0,generosFormateados.length-2);
+
+      },
+
       
     },
   };
+
+
+
 
 const WidgetJustWatch = {
     props:["title","year"],
@@ -487,7 +504,7 @@ const WidgetJustWatch = {
             }
             
             this.yearFormatted = new Date(this.year["$date"]).getFullYear();
-            console.log(this.year)
+            //console.log(this.year)
             if (!window.JustWatch) {
                 const script = document.createElement("script");
                 script.src = "https://widget.justwatch.com/justwatch_widget.js";
@@ -497,6 +514,8 @@ const WidgetJustWatch = {
                 document.head.appendChild(script);
               }
               else{
+
+                console.log("existe wasdas")
                 const widgetElement = document.querySelector('[data-jw-widget]');
                 //widgetElement.parentNode.removeChild(widgetElement);
                 this.destroyWidget();
