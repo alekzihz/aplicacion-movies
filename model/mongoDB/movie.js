@@ -7,6 +7,7 @@ import { ReadJson } from './read.js';
 import { SVD } from 'svd-js'
 import {spawn} from 'child_process';
 import { Model } from 'mongoose';
+import fs from 'fs/promises';
 
 
 
@@ -235,11 +236,9 @@ export class MovieModel{
   }
 
   static async getRecomendationMovies(user){
-
     const [Movies, Generos] = await ReadJson.getData(); 
+    //console.log(Generos)
     const UserMovies = await LikeModel.getLikesByUser(user); //peliculas que le gustan al usuario
-
-
     const idMovies = UserMovies.map(movie => movie.movie); 
     const myGenres = new Set(); //generos de las peliculas que le gustan al usuario
     UserMovies.map(movie => {
@@ -251,19 +250,28 @@ export class MovieModel{
           }
         })
       }); //generos de las peliculas que le gustan al usuario
-      
-      //peliculas filtradas por genero del usuario
-
-
-    const myGenresString = [...myGenres].join(' ').toLowerCase();
     
-    const pythonRecomendaciones = await this.executePythonScript(myGenresString);
-    console.log("aqui en recomenda")
-    return;
+    const myGenresList = [...myGenres];  
+    const pythonRecomendaciones = this.executePythonScript(myGenresList, user);
+    
+    async function readFile (){
+      const data = await fs.readFile('data/'+user+'.txt', 'utf8');
+      console.log(data);
+      console.log("en model")
+      return data;
+     
+    }
+    
+    const mydata = await readFile();
+    console.log(mydata);
+
+    return mydata;
+    //return pythonRecomendaciones;
+   
+  }
     
 
-      
-    
+  static async getRecomendationMoviesSVD(user){
       const mapMovie = new Map();
       UserMovies.forEach((movie,index)=>{
         const movieId = movie.movie;
@@ -321,13 +329,10 @@ export class MovieModel{
 
   }
 
-  static async executePythonScript(userGeneros){
-
-        const pythonScriptPath = 'script.py';
+  static async executePythonScript(userGeneros, user){
+        const pythonScriptPath = 'scrip3.py';
     // Argumentos que puedes pasar al script de Python si es necesario
-        const args = [userGeneros, 'arg2'];
-
-    
+        const args = [userGeneros, user, 'arg2'];
         return new Promise((resolve, reject) => {
           const pythonProcess = spawn('python', [pythonScriptPath, ...args]);
           let dataBuffer = '';
@@ -335,7 +340,7 @@ export class MovieModel{
           // Captura la salida del script de Python
           pythonProcess.stdout.on('data', (data) => {
               dataBuffer += data.toString();
-              console.log("on process "+data)
+              //console.log("on process "+dataBuffer)
           });
   
           // Maneja cualquier error durante la ejecución del script de Python

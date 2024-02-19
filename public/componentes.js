@@ -17,18 +17,21 @@ const RootComponent = {
             searchON: false,
             sessionLogin: null,
             textButtonLogin: "Login",
+            onUser: null,
+            moviesRecomendadas: [],
         };
     },
 
     async mounted() {
         await this.getSession();
-        this.getMoviesFromJSON();
+        await this.getMoviesFromJSON();
         window.addEventListener("scroll", this.ControladorScroll);
 
         if (this.sessionLogin.message == "Unauthorized") {
             this.textButtonLogin = "Login";
         }
         else{
+            await this.getRecomendaciones(this.sessionLogin.mail);
             this.textButtonLogin = "Logout";
         }
 
@@ -59,6 +62,31 @@ const RootComponent = {
             }
         },
 
+        async getRecomendaciones (userMail){
+            try {
+                const response = await fetch(`/movies/recomendationMovies/${userMail}`);
+                const data = await response.json();
+                const movieIdsArray = data.split(',').map(id => parseInt(id));
+
+                //console.log(movieIdsArray)
+
+                const moviesFiltradas = this.allMovies.filter(movie => movieIdsArray.includes(movie.id)).slice(0,4);
+
+
+                this.moviesRecomendadas = moviesFiltradas;
+                console.log(this.moviesRecomendadas)
+                //const myMoviesR  = this.movies.filter(movie => movieIdsArray.includes(movie.id));
+
+                
+            } catch (error) {
+                console.error("Error al obtener películas:", error);
+                // Manejar el error de alguna manera, por ejemplo, establecer this.loading en false
+                this.loading = false;
+            }
+
+        },
+
+
         async getMoviesFromJSON() {
             try {        
                 const jsonData = await fetch('appmovie.moviedbE.json'); 
@@ -77,6 +105,8 @@ const RootComponent = {
                     this.searchON = true; 
                     return;
                 }
+
+                
         
                 // Actualizar la lista de películas
                 this.movies = [...this.movies, ...moviesChunk];
@@ -124,6 +154,7 @@ const RootComponent = {
             try {
                 const response = await fetch(`/users/session`);
                 this.sessionLogin = await response.json();
+                this.onUser = this.sessionLogin.logged
                 
             } catch (error) {
                 console.error("Error al obtener películas:", error);
@@ -133,25 +164,25 @@ const RootComponent = {
 
         },
 
-            async logout(){
-                try {
-                    const response = await fetch(`/users/logout`,{
-                        method: 'GET',
-                        credentials: 'include',
-                    });
-                    if(response.ok){
-                        this.sessionLogin = null;
-                        window.location.href = "index.html";
-                    }
-                    
-                    //this.sessionLogin = await response.json();
-                    //window.location.href = "login.html";
-                } catch (error) {
-                    console.error("Error al obtener películas:", error);
-                    // Manejar el error de alguna manera, por ejemplo, establecer this.loading en false
-                    //this.sessionLogin = null;
+        async logout(){
+            try {
+                const response = await fetch(`/users/logout`,{
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                if(response.ok){
+                    this.sessionLogin = null;
+                    window.location.href = "index.html";
                 }
-            },
+                
+                //this.sessionLogin = await response.json();
+                //window.location.href = "login.html";
+            } catch (error) {
+                console.error("Error al obtener películas:", error);
+                // Manejar el error de alguna manera, por ejemplo, establecer this.loading en false
+                //this.sessionLogin = null;
+            }
+        },
 
         operationLogin(){
             if (this.sessionLogin.message == "Unauthorized") {
@@ -179,24 +210,29 @@ const RootComponent = {
     template:`
     
     <div>
-        <!--h1>{{ message }}</h1-->
-        <!-- Mostrar un indicador de carga mientras se obtienen las películas --> 
-        <div style="background:blue; position:fixed; left:90%; top:10px; padding: 10px">
-            <button  id="buttonLogin" @click="operationLogin">{{textButtonLogin}}</button>
-        </div>
-        <FilterMovie :peliculas="cacheMovies" @busqueda="controladorBusqueda"></FilterMovie> 
-        <div class="" v-if="loading">Cargando...</div>
-        <!-- Mostrar la lista de películas cuando la carga ha terminado -->
-        <!--div v-if="!loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4"-->
-         
-        
-        
-        <div v-if="!loading && movieFiltradas" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); grid-gap: 1rem;">
-                <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription" :user="sessionLogin"></MovieItem>
-            </div>            
+    <!-- Agregar cualquier otro contenido que necesites aquí -->
+    <div style="background:blue; position:fixed; left:90%; top:10px; padding: 10px">
+        <button id="buttonLogin" @click="operationLogin">{{textButtonLogin}}</button>
+    </div>
+    <FilterMovie :peliculas="cacheMovies" @busqueda="controladorBusqueda"></FilterMovie> 
+    <div v-if="loading">Cargando...</div>
+
+    <!-- Mostrar las películas recomendadas cuando el usuario está autenticado -->
+    
+
+    <div v-if="onUser" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); grid-gap: 1rem;">
+        <MovieItem v-for="movie in moviesRecomendadas" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription" :user="sessionLogin"></MovieItem>
     </div>
 
+    <br><br>
+
+    <!-- Mostrar todas las películas cuando el usuario no está autenticado -->
+    <div v-if="!loading && movieFiltradas" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); grid-gap: 2rem;">
+
+        <MovieItem v-for="movie in movies" :key="movie.id" :movie="movie" @show="showDescription" :description="enableDescription" :user="sessionLogin"></MovieItem>
     
+    </div>
+</div>
 
 
 
@@ -370,13 +406,12 @@ const MovieItem = {
         
         if(this.movie.release_date.length > 4)this.year = this.movie.release_date.substring(0,4);
         this.title = this.movie.original_title;      
-
-        //console.log(this.log)
     },
     template: `
           
     <section>
-        <img @click="showDescription" style="cursor:pointer"  class="w-full h-full object-cover" :src="movie.resource_image" alt="movie.title">
+        <img @click="showDescription" style="cursor:pointer; width: 100%; height: 100%; object-fit: cover;"  class="w-full h-full object-cover" :src="movie.resource_image" alt="movie.title">
+
         <button v-if="log !== undefined || log === true" @click="like" class="">{{ likeText }}</button>
     </section>    
     <DescriptionMovie v-if="description && details" @close="showDescription" :movie="movie" style=" 
@@ -609,10 +644,14 @@ const FilterMovie = {
             this.peliculasEncontradas = [];
             this.$emit("busqueda", this.peliculas,false);
             if (this.categoriaSeleccionada != 1) {
+                
                 this.peliculasEncontradas = this.peliculas.filter((movie) => {
+                    //console.log(movie.genres)
+                    console.log("final filter antes de filtrar")
                     movie.genres = typeof movie.genres === 'string' ? JSON.parse(movie.genres.replace(/'/g, '"')) : movie.genres;
                     if(movie.genres){
                         for (const categoria of movie.genres) {
+                            console.log(categoria.name)
                             if(categoria.name == this.categorias[this.categoriaSeleccionada-1].name){
                                 return movie
                             }
